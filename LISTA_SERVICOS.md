@@ -1,6 +1,6 @@
 # 📋 Lista Completa de Serviços - Orçamento Elétrico
 
-## 📊 Laudos (7 serviços)
+## 📊 Laudos (8 serviços)
 
 | Serviço | Descrição | Preço Padrão |
 |---------|-----------|--------------|
@@ -11,8 +11,9 @@
 | Surp. Plano de Abandono | Laudo de plano de abandono | R$ 350,00 |
 | AVCB | Auto de Vistoria do Corpo de Bombeiros | R$ 700,00 |
 | Cálculo de Demanda Elétrica | Cálculo de demanda elétrica | R$ 300,00 |
+| Inspeção Termográfica | Laudo de inspeção termográfica | R$ 550,00 |
 
-## ⚡ Instalações (13 serviços)
+## ⚡ Instalações (14 serviços)
 
 | Serviço | Descrição | Preço Padrão |
 |---------|-----------|--------------|
@@ -29,8 +30,9 @@
 | Disjuntores | Instalação de disjuntores | R$ 80,00 |
 | Painéis Solares | Instalação de painéis solares | R$ 2.500,00 |
 | Torneiras Elétricas | Instalação de torneiras elétricas | R$ 150,00 |
+| Iluminação de Emergência | Instalação de iluminação de emergência | R$ 180,00 |
 
-## 🔧 Manutenção (6 serviços)
+## 🔧 Manutenção (7 serviços)
 
 | Serviço | Descrição | Preço Padrão |
 |---------|-----------|--------------|
@@ -40,8 +42,9 @@
 | Troca de Lâmpadas | Troca de lâmpadas | R$ 50,00 |
 | Troca de Reatores | Troca de reatores eletrônicos | R$ 80,00 |
 | Troca de Fusível | Troca de fusíveis | R$ 40,00 |
+| Teste de Resistência de Isolação | Teste de resistência de isolação | R$ 220,00 |
 
-## 📐 Projetos (6 serviços)
+## 📐 Projetos (7 serviços)
 
 | Serviço | Descrição | Preço Padrão |
 |---------|-----------|--------------|
@@ -51,8 +54,9 @@
 | Projeto de SPDA | Elaboração de projeto de SPDA | R$ 600,00 |
 | Projeto de Automação | Elaboração de projeto de automação elétrica | R$ 1.500,00 |
 | Projeto de Eficiência Energética | Elaboração de projeto de eficiência energética | R$ 1.000,00 |
+| Projeto de Energia Solar | Elaboração de projeto de energia solar | R$ 1.800,00 |
 
-## 🔍 Outros (4 serviços)
+## 🔍 Outros (5 serviços)
 
 | Serviço | Descrição | Preço Padrão |
 |---------|-----------|--------------|
@@ -60,16 +64,17 @@
 | Consultoria Elétrica | Consultoria técnica elétrica | R$ 200,00 |
 | Perícia Técnica | Perícia técnica em eletricidade | R$ 500,00 |
 | Certificação de Instalações | Certificação de instalações elétricas | R$ 400,00 |
+| Treinamento NR10 | Treinamento de segurança NR10 para eletricistas | R$ 350,00 |
 
 ## 📊 Resumo por Categoria
 
-- **Laudos**: 7 serviços (R$ 300,00 - R$ 800,00)
-- **Instalações**: 13 serviços (R$ 60,00 - R$ 2.500,00)
-- **Manutenção**: 6 serviços (R$ 40,00 - R$ 250,00)
-- **Projetos**: 6 serviços (R$ 600,00 - R$ 2.000,00)
-- **Outros**: 4 serviços (R$ 200,00 - R$ 500,00)
+- **Laudos**: 8 serviços (R$ 300,00 - R$ 800,00)
+- **Instalações**: 14 serviços (R$ 60,00 - R$ 2.500,00)
+- **Manutenção**: 7 serviços (R$ 40,00 - R$ 250,00)
+- **Projetos**: 7 serviços (R$ 600,00 - R$ 2.000,00)
+- **Outros**: 5 serviços (R$ 200,00 - R$ 500,00)
 
-**Total: 36 serviços pré-definidos**
+**Total: 41 serviços pré-definidos**
 
 ## 💡 Observações Importantes
 

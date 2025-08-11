@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Button } from '@/components/ui/button.jsx'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card.jsx'
 import { Input } from '@/components/ui/input.jsx'
@@ -9,6 +9,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs.j
 import { Badge } from '@/components/ui/badge.jsx'
 import { Separator } from '@/components/ui/separator.jsx'
 import { Plus, Trash2, FileText, Calculator, User, Zap } from 'lucide-react'
+import jsPDF from 'jspdf'
+import autoTable from 'jspdf-autotable'
 import { services, categories } from './data/services.js'
 import './App.css'
 
@@ -104,10 +106,51 @@ function App() {
       valorTotal: calcularTotal(),
       dataCriacao: new Date().toLocaleDateString('pt-BR')
     }
-    
-    // Aqui você pode implementar a geração de PDF ou impressão
+
     console.log('Orçamento gerado:', orcamento)
-    alert('Orçamento gerado com sucesso! (Verifique o console para detalhes)')
+
+    const doc = new jsPDF()
+    doc.setFontSize(18)
+    doc.text('Orçamento de Serviços Elétricos', 14, 20)
+
+    doc.setFontSize(12)
+    doc.text(`Cliente: ${orcamento.cliente.nome}`, 14, 30)
+    doc.text(`Contato: ${orcamento.cliente.contato}`, 14, 37)
+    if (orcamento.cliente.endereco) {
+      doc.text(`Endereço: ${orcamento.cliente.endereco}`, 14, 44)
+    }
+    doc.text(`Data: ${orcamento.dataCriacao}`, 14, 51)
+
+    autoTable(doc, {
+      startY: 60,
+      head: [['Serviço', 'Observações', 'Preço']],
+      body: [
+        ...orcamento.servicosSelecionados.map(s => [s.nome, s.observacoes || '', `R$ ${s.preco_unitario.toFixed(2)}`]),
+        ...orcamento.servicosManuais.map(s => [s.nome, s.descricao || '', `R$ ${s.preco.toFixed(2)}`])
+      ]
+    })
+
+    let finalY = doc.lastAutoTable ? doc.lastAutoTable.finalY : 60
+
+    if (orcamento.despesasExtras.length > 0) {
+      autoTable(doc, {
+        startY: finalY + 10,
+        head: [['Despesa', 'Valor']],
+        body: orcamento.despesasExtras.map(d => [d.descricao, `R$ ${d.valor.toFixed(2)}`])
+      })
+      finalY = doc.lastAutoTable.finalY
+    }
+
+    if (orcamento.observacoesGerais) {
+      doc.text(`Observações: ${orcamento.observacoesGerais}`, 14, finalY + 10)
+      finalY += 16
+    }
+
+    doc.setFontSize(14)
+    doc.text(`Total: R$ ${orcamento.valorTotal.toFixed(2)}`, 14, finalY + 20)
+
+    doc.save(`orcamento-${orcamento.cliente.nome || 'cliente'}.pdf`)
+    alert('Orçamento gerado em PDF com sucesso!')
   }
 
   // Função para limpar formulário
