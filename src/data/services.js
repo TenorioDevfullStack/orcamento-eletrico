@@ -49,6 +49,13 @@ export const services = [
     preco_padrao: 300.00,
     categoria: 'Laudos'
   },
+  {
+    id: 'inspecao-termografica',
+    nome: 'Inspeção Termográfica',
+    descricao: 'Laudo de inspeção termográfica',
+    preco_padrao: 550.00,
+    categoria: 'Laudos'
+  },
 
   // Instalações Comerciais e Residenciais
   {
@@ -142,6 +149,13 @@ export const services = [
     preco_padrao: 150.00,
     categoria: 'Instalações'
   },
+  {
+    id: 'iluminacao-emergencia',
+    nome: 'Iluminação de Emergência',
+    descricao: 'Instalação de iluminação de emergência',
+    preco_padrao: 180.00,
+    categoria: 'Instalações'
+  },
 
   // Manutenção
   {
@@ -184,6 +198,13 @@ export const services = [
     nome: 'Troca de Fusível',
     descricao: 'Troca de fusíveis',
     preco_padrao: 40.00,
+    categoria: 'Manutenção'
+  },
+  {
+    id: 'teste-isolacao',
+    nome: 'Teste de Resistência de Isolação',
+    descricao: 'Teste de resistência de isolação',
+    preco_padrao: 220.00,
     categoria: 'Manutenção'
   },
 
@@ -230,6 +251,13 @@ export const services = [
     preco_padrao: 1000.00,
     categoria: 'Projetos'
   },
+  {
+    id: 'projeto-energia-solar',
+    nome: 'Projeto de Energia Solar',
+    descricao: 'Elaboração de projeto de energia solar',
+    preco_padrao: 1800.00,
+    categoria: 'Projetos'
+  },
 
   // Outros
   {
@@ -258,6 +286,13 @@ export const services = [
     nome: 'Certificação de Instalações',
     descricao: 'Certificação de instalações elétricas',
     preco_padrao: 400.00,
+    categoria: 'Outros'
+  },
+  {
+    id: 'treinamento-nr10',
+    nome: 'Treinamento NR10',
+    descricao: 'Treinamento de segurança NR10 para eletricistas',
+    preco_padrao: 350.00,
     categoria: 'Outros'
   }
 ];

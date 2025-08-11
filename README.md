@@ -10,7 +10,7 @@ Sistema Progressive Web App (PWA) para geração de orçamentos de serviços el�
 - Interface intuitiva para preenchimento rápido
 
 ### ⚡ Catálogo de Serviços
-- **35+ serviços pré-definidos** organizados por categorias:
+- **40+ serviços pré-definidos** organizados por categorias:
   - **Laudos**: SPDA, Sistema de Incêndio, AVCB, Cálculo de Demanda, etc.
   - **Instalações**: Iluminação, Tomadas, Quadros, DPS, Aterramento, etc.
   - **Manutenção**: Preventiva, Corretiva, Preditiva, Troca de componentes
@@ -115,6 +115,7 @@ pnpm run dev
 - AVCB: R$ 700,00
 - Instalações Elétricas: R$ 400,00
 - Cálculo de Demanda: R$ 300,00
+- Inspeção Termográfica: R$ 550,00
 
 ### Instalações
 - Iluminação: R$ 150,00
@@ -122,12 +123,23 @@ pnpm run dev
 - Quadros: R$ 250,00
 - Painéis Solares: R$ 2.500,00
 - Aterramento: R$ 200,00
+- Iluminação de Emergência: R$ 180,00
+
+### Manutenção
+- Manutenção Preventiva: R$ 200,00
+- Manutenção Corretiva: R$ 180,00
+- Teste de Resistência de Isolação: R$ 220,00
 
 ### Projetos
 - Projeto Residencial: R$ 800,00
 - Projeto Comercial: R$ 1.200,00
 - Projeto Industrial: R$ 2.000,00
 - Projeto de Automação: R$ 1.500,00
+- Projeto de Energia Solar: R$ 1.800,00
+
+### Outros
+- Consultoria Elétrica: R$ 200,00
+- Treinamento NR10: R$ 350,00
 
 *Preços podem ser ajustados individualmente em cada orçamento*
 
