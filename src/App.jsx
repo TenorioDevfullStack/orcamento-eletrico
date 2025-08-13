@@ -8,10 +8,11 @@ import { Checkbox } from '@/components/ui/checkbox.jsx'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs.jsx'
 import { Badge } from '@/components/ui/badge.jsx'
 import { Separator } from '@/components/ui/separator.jsx'
-import { Plus, Trash2, FileText, Calculator, User, Zap } from 'lucide-react'
+import { Plus, Trash2, FileText, Calculator, User, Zap, Camera } from 'lucide-react'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import { services, categories } from './data/services.js'
+import { problemasEletricos, outrosProblemas } from './data/problems.js'
 import './App.css'
 
 function App() {
@@ -24,6 +25,10 @@ function App() {
   const [observacoesGerais, setObservacoesGerais] = useState('')
   const [novoServicoManual, setNovoServicoManual] = useState({ nome: '', descricao: '', preco: '' })
   const [novaDespesa, setNovaDespesa] = useState({ descricao: '', valor: '' })
+  const [problemasEletricosSelecionados, setProblemasEletricosSelecionados] = useState([])
+  const [outrosProblemasSelecionados, setOutrosProblemasSelecionados] = useState([])
+  const [descricaoRelatorio, setDescricaoRelatorio] = useState('')
+  const [fotosRelatorio, setFotosRelatorio] = useState([])
 
   // Função para adicionar/remover serviços selecionados
   const toggleServico = (servico) => {
@@ -93,6 +98,30 @@ function App() {
   // Função para remover despesa extra
   const removerDespesaExtra = (id) => {
     setDespesasExtras(despesasExtras.filter(d => d.id !== id))
+  }
+
+  // Funções para relatório
+  const toggleSelecao = (item, lista, setLista) => {
+    if (lista.includes(item)) {
+      setLista(lista.filter(p => p !== item))
+    } else {
+      setLista([...lista, item])
+    }
+  }
+
+  const adicionarFotoRelatorio = (e) => {
+    const file = e.target.files && e.target.files[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      setFotosRelatorio([...fotosRelatorio, { id: Date.now(), src: reader.result, descricao: '' }])
+    }
+    reader.readAsDataURL(file)
+    e.target.value = ''
+  }
+
+  const atualizarDescricaoFoto = (id, descricao) => {
+    setFotosRelatorio(fotosRelatorio.map(f => f.id === id ? { ...f, descricao } : f))
   }
 
   // Calcular valor total
@@ -166,6 +195,68 @@ function App() {
     alert('Orçamento gerado em PDF com sucesso!')
   }
 
+  // Função para gerar relatório
+  const gerarRelatorio = () => {
+    const doc = new jsPDF()
+    doc.setFontSize(18)
+    doc.text('Relatório de Inspeção', 14, 20)
+
+    doc.setFontSize(12)
+    doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, 14, 30)
+
+    let y = 40
+
+    if (problemasEletricosSelecionados.length > 0) {
+      doc.text('Problemas Elétricos:', 14, y)
+      y += 6
+      problemasEletricosSelecionados.forEach(p => {
+        doc.text(`- ${p}`, 16, y)
+        y += 6
+      })
+    }
+
+    if (outrosProblemasSelecionados.length > 0) {
+      doc.text('Outros Problemas:', 14, y)
+      y += 6
+      outrosProblemasSelecionados.forEach(p => {
+        doc.text(`- ${p}`, 16, y)
+        y += 6
+      })
+    }
+
+    if (descricaoRelatorio) {
+      doc.text('Observações:', 14, y)
+      y += 6
+      const linhas = doc.splitTextToSize(descricaoRelatorio, 180)
+      doc.text(linhas, 16, y)
+      y += linhas.length * 6 + 4
+    }
+
+    fotosRelatorio.forEach(foto => {
+      const props = doc.getImageProperties(foto.src)
+      const w = 180
+      const h = props.height * w / props.width
+      if (y + h > 280) {
+        doc.addPage()
+        y = 20
+      }
+      doc.addImage(foto.src, props.fileType || 'JPEG', 14, y, w, h)
+      y += h + 4
+      if (foto.descricao) {
+        const texto = doc.splitTextToSize(foto.descricao, 180)
+        if (y + texto.length * 6 > 280) {
+          doc.addPage()
+          y = 20
+        }
+        doc.text(texto, 14, y)
+        y += texto.length * 6 + 4
+      }
+    })
+
+    doc.save('relatorio.pdf')
+    alert('Relatório gerado em PDF com sucesso!')
+  }
+
   // Função para limpar formulário
   const limparFormulario = () => {
     setCliente({ nome: '', contato: '', endereco: '' })
@@ -188,7 +279,7 @@ function App() {
         </div>
 
         <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="cliente" className="flex items-center gap-2">
               <User className="h-4 w-4" />
               Cliente
@@ -204,6 +295,10 @@ function App() {
             <TabsTrigger value="orcamento" className="flex items-center gap-2">
               <Calculator className="h-4 w-4" />
               Orçamento
+            </TabsTrigger>
+            <TabsTrigger value="relatorio" className="flex items-center gap-2">
+              <Camera className="h-4 w-4" />
+              Relatório
             </TabsTrigger>
           </TabsList>
 
@@ -607,6 +702,102 @@ function App() {
                     Novo Orçamento
                   </Button>
                 </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Aba Relatório */}
+          <TabsContent value="relatorio" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Camera className="h-5 w-5" />
+                  Registro de Problemas
+                </CardTitle>
+                <CardDescription>Capture fotos e descreva problemas encontrados</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div>
+                  <h3 className="font-semibold mb-2">Problemas Elétricos</h3>
+                  <div className="grid gap-2">
+                    {problemasEletricos.map(p => (
+                      <Label key={p} className="flex items-center gap-2">
+                        <Checkbox
+                          checked={problemasEletricosSelecionados.includes(p)}
+                          onCheckedChange={() =>
+                            toggleSelecao(
+                              p,
+                              problemasEletricosSelecionados,
+                              setProblemasEletricosSelecionados
+                            )
+                          }
+                        />
+                        {p}
+                      </Label>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="font-semibold mb-2">Outros Problemas</h3>
+                  <div className="grid gap-2">
+                    {outrosProblemas.map(p => (
+                      <Label key={p} className="flex items-center gap-2">
+                        <Checkbox
+                          checked={outrosProblemasSelecionados.includes(p)}
+                          onCheckedChange={() =>
+                            toggleSelecao(
+                              p,
+                              outrosProblemasSelecionados,
+                              setOutrosProblemasSelecionados
+                            )
+                          }
+                        />
+                        {p}
+                      </Label>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="descricao-relatorio">Descrição Adicional</Label>
+                  <Textarea
+                    id="descricao-relatorio"
+                    value={descricaoRelatorio}
+                    onChange={(e) => setDescricaoRelatorio(e.target.value)}
+                    placeholder="Descreva detalhes adicionais"
+                    rows={3}
+                  />
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="foto-relatorio">Capturar Foto</Label>
+                    <Input
+                      id="foto-relatorio"
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      onChange={adicionarFotoRelatorio}
+                    />
+                  </div>
+                  {fotosRelatorio.map(foto => (
+                    <div key={foto.id} className="space-y-2">
+                      <img src={foto.src} alt="Evidência" className="w-full max-w-xs rounded" />
+                      <Textarea
+                        value={foto.descricao}
+                        onChange={(e) => atualizarDescricaoFoto(foto.id, e.target.value)}
+                        placeholder="Descrição da foto"
+                        rows={2}
+                      />
+                    </div>
+                  ))}
+                </div>
+
+                <Button onClick={gerarRelatorio} className="w-full">
+                  <FileText className="h-4 w-4 mr-2" />
+                  Gerar Relatório
+                </Button>
               </CardContent>
             </Card>
           </TabsContent>
