@@ -47,6 +47,7 @@ O **Orçamento Elétrico PWA** é um aplicativo web que funciona como um app nat
 
 - **Marque os checkboxes** dos serviços necessários
 - Para cada serviço marcado:
+  - **Informe a quantidade** a ser executada
   - **Ajuste o preço** se necessário
   - **Adicione observações** específicas
 - Toque em **"Próximo: Serviços Extras"**
