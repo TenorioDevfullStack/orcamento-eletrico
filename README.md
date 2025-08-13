@@ -19,6 +19,7 @@ Sistema Progressive Web App (PWA) para geração de orçamentos de serviços el�
 
 ### 🔧 Personalização de Orçamentos
 - Seleção múltipla de serviços via checkbox
+- Definição de quantidade por serviço
 - Edição de preços individuais por orçamento
 - Campo de observações específicas para cada serviço
 - Adição de serviços manuais não listados
@@ -77,6 +78,7 @@ pnpm run dev
 - Navegue pelas categorias de serviços
 - Marque os checkboxes dos serviços necessários
 - Para cada serviço selecionado:
+  - Informe a quantidade a ser instalada
   - Ajuste o preço se necessário
   - Adicione observações específicas
 - Clique em "Próximo: Serviços Extras"

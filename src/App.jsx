@@ -34,6 +34,7 @@ function App() {
       setServicosSelecionados([...servicosSelecionados, {
         ...servico,
         preco_unitario: servico.preco_padrao,
+        quantidade: 1,
         observacoes: ''
       }])
     }
@@ -41,8 +42,15 @@ function App() {
 
   // Função para atualizar preço de um serviço selecionado
   const atualizarPrecoServico = (id, novoPreco) => {
-    setServicosSelecionados(servicosSelecionados.map(s => 
+    setServicosSelecionados(servicosSelecionados.map(s =>
       s.id === id ? { ...s, preco_unitario: parseFloat(novoPreco) || 0 } : s
+    ))
+  }
+
+  // Função para atualizar quantidade de um serviço selecionado
+  const atualizarQuantidadeServico = (id, novaQuantidade) => {
+    setServicosSelecionados(servicosSelecionados.map(s =>
+      s.id === id ? { ...s, quantidade: parseInt(novaQuantidade) || 0 } : s
     ))
   }
 
@@ -89,7 +97,7 @@ function App() {
 
   // Calcular valor total
   const calcularTotal = () => {
-    const totalServicos = servicosSelecionados.reduce((acc, s) => acc + s.preco_unitario, 0)
+    const totalServicos = servicosSelecionados.reduce((acc, s) => acc + (s.preco_unitario * s.quantidade), 0)
     const totalManuais = servicosManuais.reduce((acc, s) => acc + s.preco, 0)
     const totalDespesas = despesasExtras.reduce((acc, d) => acc + d.valor, 0)
     return totalServicos + totalManuais + totalDespesas
@@ -123,10 +131,15 @@ function App() {
 
     autoTable(doc, {
       startY: 60,
-      head: [['Serviço', 'Observações', 'Preço']],
+      head: [['Serviço', 'Qtd', 'Observações', 'Preço']],
       body: [
-        ...orcamento.servicosSelecionados.map(s => [s.nome, s.observacoes || '', `R$ ${s.preco_unitario.toFixed(2)}`]),
-        ...orcamento.servicosManuais.map(s => [s.nome, s.descricao || '', `R$ ${s.preco.toFixed(2)}`])
+        ...orcamento.servicosSelecionados.map(s => [
+          s.nome,
+          s.quantidade,
+          s.observacoes || '',
+          `R$ ${(s.preco_unitario * s.quantidade).toFixed(2)}`
+        ]),
+        ...orcamento.servicosManuais.map(s => [s.nome, 1, s.descricao || '', `R$ ${s.preco.toFixed(2)}`])
       ]
     })
 
@@ -274,6 +287,17 @@ function App() {
                                 
                                 {selecionado && (
                                   <div className="mt-3 space-y-2">
+                                    <div>
+                                      <Label htmlFor={`quantidade-${servico.id}`}>Quantidade</Label>
+                                      <Input
+                                        id={`quantidade-${servico.id}`}
+                                        type="number"
+                                        min="1"
+                                        value={selecionado.quantidade}
+                                        onChange={(e) => atualizarQuantidadeServico(servico.id, e.target.value)}
+                                        className="w-24"
+                                      />
+                                    </div>
                                     <div>
                                       <Label htmlFor={`preco-${servico.id}`}>Preço para este orçamento</Label>
                                       <Input
@@ -509,7 +533,10 @@ function App() {
                               <p className="text-sm text-blue-600 mt-1">Obs: {servico.observacoes}</p>
                             )}
                           </div>
-                          <Badge>R$ {servico.preco_unitario.toFixed(2)}</Badge>
+                          <Badge>
+                            {servico.quantidade}x R$ {servico.preco_unitario.toFixed(2)} = R$
+                            {(servico.preco_unitario * servico.quantidade).toFixed(2)}
+                          </Badge>
                         </div>
                       ))}
                     </div>
