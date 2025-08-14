@@ -29,6 +29,9 @@ function App() {
   const [outrosProblemasSelecionados, setOutrosProblemasSelecionados] = useState([])
   const [descricaoRelatorio, setDescricaoRelatorio] = useState('')
   const [fotosRelatorio, setFotosRelatorio] = useState([])
+  const [servicosRelatorioSelecionados, setServicosRelatorioSelecionados] = useState([])
+  const [servicosRelatorioManuais, setServicosRelatorioManuais] = useState([])
+  const [novoServicoRelatorioManual, setNovoServicoRelatorioManual] = useState({ nome: '', descricao: '', quantidade: '', unidade: 'un' })
   const [desconto, setDesconto] = useState(0)
 
   // Função para adicionar/remover serviços selecionados
@@ -104,6 +107,47 @@ function App() {
   // Função para remover despesa extra
   const removerDespesaExtra = (id) => {
     setDespesasExtras(despesasExtras.filter(d => d.id !== id))
+  }
+
+  // Funções para serviços do relatório
+  const toggleServicoRelatorio = (servico) => {
+    const existe = servicosRelatorioSelecionados.find(s => s.id === servico.id)
+    if (existe) {
+      setServicosRelatorioSelecionados(servicosRelatorioSelecionados.filter(s => s.id !== servico.id))
+    } else {
+      setServicosRelatorioSelecionados([
+        ...servicosRelatorioSelecionados,
+        { ...servico, quantidade: 1 }
+      ])
+    }
+  }
+
+  const atualizarQuantidadeServicoRelatorio = (id, novaQuantidade) => {
+    setServicosRelatorioSelecionados(
+      servicosRelatorioSelecionados.map(s =>
+        s.id === id ? { ...s, quantidade: parseFloat(novaQuantidade) || 0 } : s
+      )
+    )
+  }
+
+  const adicionarServicoRelatorioManual = () => {
+    if (novoServicoRelatorioManual.nome && novoServicoRelatorioManual.quantidade) {
+      setServicosRelatorioManuais([
+        ...servicosRelatorioManuais,
+        {
+          id: Date.now().toString(),
+          nome: novoServicoRelatorioManual.nome,
+          descricao: novoServicoRelatorioManual.descricao,
+          quantidade: parseFloat(novoServicoRelatorioManual.quantidade) || 0,
+          unidade: novoServicoRelatorioManual.unidade || 'un'
+        }
+      ])
+      setNovoServicoRelatorioManual({ nome: '', descricao: '', quantidade: '', unidade: 'un' })
+    }
+  }
+
+  const removerServicoRelatorioManual = (id) => {
+    setServicosRelatorioManuais(servicosRelatorioManuais.filter(s => s.id !== id))
   }
 
   // Funções para relatório
@@ -245,6 +289,25 @@ function App() {
       })
     }
 
+    if (servicosRelatorioSelecionados.length > 0 || servicosRelatorioManuais.length > 0) {
+      doc.text('Serviços Recomendados:', 14, y)
+      y += 6
+      servicosRelatorioSelecionados.forEach(s => {
+        const unidade = s.categoria === 'Laudos'
+          ? 'm²'
+          : s.categoria === 'Passagem de Cabos e Eletrodutos'
+            ? 'm'
+            : 'un'
+        doc.text(`- ${s.nome} (${s.quantidade} ${unidade})`, 16, y)
+        y += 6
+      })
+      servicosRelatorioManuais.forEach(s => {
+        const texto = `- ${s.nome} (${s.quantidade} ${s.unidade || 'un'})${s.descricao ? ' - ' + s.descricao : ''}`
+        doc.text(texto, 16, y)
+        y += 6
+      })
+    }
+
     if (descricaoRelatorio) {
       doc.text('Observações:', 14, y)
       y += 6
@@ -286,6 +349,13 @@ function App() {
     setDespesasExtras([])
     setObservacoesGerais('')
     setDesconto(0)
+    setServicosRelatorioSelecionados([])
+    setServicosRelatorioManuais([])
+    setNovoServicoRelatorioManual({ nome: '', descricao: '', quantidade: '', unidade: 'un' })
+    setProblemasEletricosSelecionados([])
+    setOutrosProblemasSelecionados([])
+    setDescricaoRelatorio('')
+    setFotosRelatorio([])
     setCurrentTab('cliente')
   }
 
@@ -761,6 +831,108 @@ function App() {
 
           {/* Aba Relatório */}
           <TabsContent value="relatorio" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Zap className="h-5 w-5" />
+                  Serviços Necessários
+                </CardTitle>
+                <CardDescription>Selecione os serviços recomendados</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {categories.map(categoria => (
+                  <div key={categoria} className="space-y-2">
+                    <h3 className="font-semibold">{categoria}</h3>
+                    <div className="grid gap-4">
+                      {services.filter(s => s.categoria === categoria).map(servico => {
+                        const selecionado = servicosRelatorioSelecionados.find(s => s.id === servico.id)
+                        const isLaudo = servico.categoria === 'Laudos'
+                        const isCabo = servico.categoria === 'Passagem de Cabos e Eletrodutos'
+                        const label = isLaudo ? 'Metros²' : isCabo ? 'Metros' : 'Quantidade'
+                        return (
+                          <div key={servico.id} className="border rounded-lg p-4">
+                            <div className="flex items-center gap-2">
+                              <Checkbox
+                                checked={!!selecionado}
+                                onCheckedChange={() => toggleServicoRelatorio(servico)}
+                              />
+                              <div>
+                                <h4 className="font-medium">{servico.nome}</h4>
+                                {servico.descricao && (
+                                  <p className="text-sm text-gray-600">{servico.descricao}</p>
+                                )}
+                              </div>
+                            </div>
+                            {selecionado && (
+                              <div className="mt-4 space-y-2">
+                                <Label htmlFor={`quantidade-rel-${servico.id}`}>{label}</Label>
+                                <Input
+                                  id={`quantidade-rel-${servico.id}`}
+                                  type="number"
+                                  min="0"
+                                  step={(isLaudo || isCabo) ? '0.01' : '1'}
+                                  value={selecionado.quantidade}
+                                  onChange={(e) => atualizarQuantidadeServicoRelatorio(servico.id, e.target.value)}
+                                />
+                              </div>
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                ))}
+
+                <div className="space-y-4">
+                  <h3 className="font-semibold">Adicionar Serviço Manual</h3>
+                  <div className="grid gap-2">
+                    <Label htmlFor="nome-servico-relatorio">Nome</Label>
+                    <Input
+                      id="nome-servico-relatorio"
+                      value={novoServicoRelatorioManual.nome}
+                      onChange={(e) => setNovoServicoRelatorioManual({ ...novoServicoRelatorioManual, nome: e.target.value })}
+                    />
+                    <Label htmlFor="descricao-servico-relatorio">Descrição</Label>
+                    <Input
+                      id="descricao-servico-relatorio"
+                      value={novoServicoRelatorioManual.descricao}
+                      onChange={(e) => setNovoServicoRelatorioManual({ ...novoServicoRelatorioManual, descricao: e.target.value })}
+                    />
+                    <Label htmlFor="quantidade-servico-relatorio">Quantidade ou m²</Label>
+                    <Input
+                      id="quantidade-servico-relatorio"
+                      type="number"
+                      value={novoServicoRelatorioManual.quantidade}
+                      onChange={(e) => setNovoServicoRelatorioManual({ ...novoServicoRelatorioManual, quantidade: e.target.value })}
+                    />
+                    <Label htmlFor="unidade-servico-relatorio">Unidade</Label>
+                    <Input
+                      id="unidade-servico-relatorio"
+                      value={novoServicoRelatorioManual.unidade}
+                      onChange={(e) => setNovoServicoRelatorioManual({ ...novoServicoRelatorioManual, unidade: e.target.value })}
+                    />
+                  </div>
+                  <Button variant="outline" onClick={adicionarServicoRelatorioManual}>Adicionar</Button>
+
+                  {servicosRelatorioManuais.length > 0 && (
+                    <div className="space-y-2">
+                      {servicosRelatorioManuais.map(servico => (
+                        <div key={servico.id} className="flex justify-between items-center p-3 border rounded">
+                          <span>
+                            {`${servico.nome} - ${servico.quantidade} ${servico.unidade}`}
+                            {servico.descricao ? ` (${servico.descricao})` : ''}
+                          </span>
+                          <Button variant="ghost" size="icon" onClick={() => removerServicoRelatorioManual(servico.id)}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
