@@ -371,24 +371,24 @@ function App() {
         </div>
 
         <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="cliente" className="flex items-center gap-2">
+          <TabsList className="flex flex-wrap w-full h-auto gap-2">
+            <TabsTrigger value="cliente" className="flex items-center gap-2 text-xs sm:text-sm whitespace-normal">
               <User className="h-4 w-4" />
               Cliente
             </TabsTrigger>
-            <TabsTrigger value="servicos" className="flex items-center gap-2">
+            <TabsTrigger value="servicos" className="flex items-center gap-2 text-xs sm:text-sm whitespace-normal">
               <Zap className="h-4 w-4" />
               Serviços
             </TabsTrigger>
-            <TabsTrigger value="extras" className="flex items-center gap-2">
+            <TabsTrigger value="extras" className="flex items-center gap-2 text-xs sm:text-sm whitespace-normal">
               <Plus className="h-4 w-4" />
               Extras
             </TabsTrigger>
-            <TabsTrigger value="orcamento" className="flex items-center gap-2">
+            <TabsTrigger value="orcamento" className="flex items-center gap-2 text-xs sm:text-sm whitespace-normal">
               <Calculator className="h-4 w-4" />
               Orçamento
             </TabsTrigger>
-            <TabsTrigger value="relatorio" className="flex items-center gap-2">
+            <TabsTrigger value="relatorio" className="flex items-center gap-2 text-xs sm:text-sm whitespace-normal">
               <Camera className="h-4 w-4" />
               Relatório
             </TabsTrigger>
