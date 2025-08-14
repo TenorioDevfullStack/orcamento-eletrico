@@ -240,3 +240,25 @@ Para dúvidas ou sugestões sobre o sistema, entre em contato através dos canai
 
 **Desenvolvido com ⚡ para profissionais da área elétrica**
 
+
+## 📦 Empacotamento para Android e iOS
+
+Este projeto pode ser convertido em um aplicativo nativo utilizando [Capacitor](https://capacitorjs.com/).
+
+### Passos
+
+1. Gere os arquivos da web:
+   ```bash
+   pnpm build
+   ```
+2. Sincronize os projetos nativos:
+   ```bash
+   pnpm sync
+   ```
+3. Abra o projeto desejado:
+   ```bash
+   pnpm android   # abre no Android Studio
+   pnpm ios       # abre no Xcode
+   ```
+
+Após a abertura, use as ferramentas do Android Studio ou Xcode para gerar os instaladores (APK/AAB ou IPA).
