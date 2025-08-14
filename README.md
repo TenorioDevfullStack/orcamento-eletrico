@@ -166,7 +166,20 @@ Edite o arquivo `src/data/services.js` para adicionar novos serviços:
 As categorias disponíveis estão no final do arquivo `src/data/services.js`:
 
 ```javascript
-export const categories = ['Laudos', 'Instalações', 'Manutenção', 'Projetos', 'Outros'];
+export const categories = [
+  'Laudos',
+  'Iluminação',
+  'Tomadas e Interruptores',
+  'Ventiladores e Chuveiros',
+  'Interfonia, CFTV e Portões',
+  'Alarmes e Emergência',
+  'Quadros e Proteções',
+  'Passagem de Cabos e Eletrodutos',
+  'Instalações Específicas',
+  'Manutenção',
+  'Projetos',
+  'Outros'
+];
 ```
 
 ## 📱 Compatibilidade
