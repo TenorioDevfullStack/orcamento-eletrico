@@ -91,6 +91,7 @@ pnpm run dev
 
 #### Passo 4: Orçamento Final
 - Revise todos os itens e valores
+- Caso necessário, informe uma porcentagem de desconto
 - Visualize o total calculado automaticamente
 - Clique em "Gerar Orçamento" para finalizar
 - Use "Novo Orçamento" para começar outro
