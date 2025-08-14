@@ -4,56 +4,56 @@ export const services = [
     id: 'spda',
     nome: 'SPDA',
     descricao: 'Sistema de Proteção contra Descargas Atmosféricas',
-    preco_padrao: 800.00,
+    preco_padrao: 18.88,
     categoria: 'Laudos'
   },
   {
     id: 'sistema-incendio',
     nome: 'Sistema de Incêndio',
     descricao: 'Laudo de sistema de incêndio',
-    preco_padrao: 600.00,
+    preco_padrao: 18.88,
     categoria: 'Laudos'
   },
   {
     id: 'abrangencia-geradores',
     nome: 'Abrangência de Geradores',
     descricao: 'Laudo de abrangência de geradores',
-    preco_padrao: 500.00,
+    preco_padrao: 18.88,
     categoria: 'Laudos'
   },
   {
     id: 'inst-eletricas',
     nome: 'Instalações Elétricas',
     descricao: 'Laudo de instalações elétricas',
-    preco_padrao: 400.00,
+    preco_padrao: 18.88,
     categoria: 'Laudos'
   },
   {
     id: 'surp-plano-abandono',
     nome: 'Surp. Plano de Abandono',
     descricao: 'Laudo de plano de abandono',
-    preco_padrao: 350.00,
+    preco_padrao: 18.88,
     categoria: 'Laudos'
   },
   {
     id: 'avcb',
     nome: 'AVCB',
     descricao: 'Auto de Vistoria do Corpo de Bombeiros',
-    preco_padrao: 700.00,
+    preco_padrao: 18.88,
     categoria: 'Laudos'
   },
   {
     id: 'calculo-demanda',
     nome: 'Cálculo de Demanda Elétrica',
     descricao: 'Cálculo de demanda elétrica',
-    preco_padrao: 300.00,
+    preco_padrao: 18.88,
     categoria: 'Laudos'
   },
   {
     id: 'inspecao-termografica',
     nome: 'Inspeção Termográfica',
     descricao: 'Laudo de inspeção termográfica',
-    preco_padrao: 550.00,
+    preco_padrao: 18.88,
     categoria: 'Laudos'
   },
 
