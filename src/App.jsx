@@ -32,7 +32,7 @@ function App() {
   const [fotosRelatorio, setFotosRelatorio] = useState([])
   const [servicosRelatorioSelecionados, setServicosRelatorioSelecionados] = useState([])
   const [servicosRelatorioManuais, setServicosRelatorioManuais] = useState([])
-  const [novoServicoRelatorioManual, setNovoServicoRelatorioManual] = useState({ nome: '', descricao: '', quantidade: '', unidade: 'un' })
+  const [novoServicoRelatorioManual, setNovoServicoRelatorioManual] = useState({ nome: '', descricao: '', quantidade: '', unidade: 'un', foto: '' })
   const [desconto, setDesconto] = useState(0)
 
   const [arquivos, setArquivos] = useState(() => {
@@ -134,7 +134,7 @@ function App() {
     } else {
       setServicosRelatorioSelecionados([
         ...servicosRelatorioSelecionados,
-        { ...servico, quantidade: 1 }
+        { ...servico, quantidade: 1, descricao: '', foto: '' }
       ])
     }
   }
@@ -147,6 +147,40 @@ function App() {
     )
   }
 
+  const atualizarDescricaoServicoRelatorio = (id, descricao) => {
+    setServicosRelatorioSelecionados(
+      servicosRelatorioSelecionados.map(s =>
+        s.id === id ? { ...s, descricao } : s
+      )
+    )
+  }
+
+  const adicionarFotoServicoRelatorio = (id, e) => {
+    const file = e.target.files && e.target.files[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      setServicosRelatorioSelecionados(
+        servicosRelatorioSelecionados.map(s =>
+          s.id === id ? { ...s, foto: reader.result } : s
+        )
+      )
+    }
+    reader.readAsDataURL(file)
+    e.target.value = ''
+  }
+
+  const handleFotoNovoServicoRelatorioManual = (e) => {
+    const file = e.target.files && e.target.files[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      setNovoServicoRelatorioManual({ ...novoServicoRelatorioManual, foto: reader.result })
+    }
+    reader.readAsDataURL(file)
+    e.target.value = ''
+  }
+
   const adicionarServicoRelatorioManual = () => {
     if (novoServicoRelatorioManual.nome && novoServicoRelatorioManual.quantidade) {
       setServicosRelatorioManuais([
@@ -156,10 +190,11 @@ function App() {
           nome: novoServicoRelatorioManual.nome,
           descricao: novoServicoRelatorioManual.descricao,
           quantidade: parseFloat(novoServicoRelatorioManual.quantidade) || 0,
-          unidade: novoServicoRelatorioManual.unidade || 'un'
+          unidade: novoServicoRelatorioManual.unidade || 'un',
+          foto: novoServicoRelatorioManual.foto
         }
       ])
-      setNovoServicoRelatorioManual({ nome: '', descricao: '', quantidade: '', unidade: 'un' })
+      setNovoServicoRelatorioManual({ nome: '', descricao: '', quantidade: '', unidade: 'un', foto: '' })
     }
   }
 
@@ -377,13 +412,36 @@ function App() {
           : s.categoria === 'Passagem de Cabos e Eletrodutos'
             ? 'm'
             : 'un'
-        doc.text(`- ${s.nome} (${s.quantidade} ${unidade})`, 16, y)
+        const texto = `- ${s.nome} (${s.quantidade} ${unidade})${s.descricao ? ' - ' + s.descricao : ''}`
+        doc.text(texto, 16, y)
         y += 6
+        if (s.foto) {
+          const props = doc.getImageProperties(s.foto)
+          const w = 180
+          const h = props.height * w / props.width
+          if (y + h > 280) {
+            doc.addPage()
+            y = 20
+          }
+          doc.addImage(s.foto, props.fileType || 'JPEG', 14, y, w, h)
+          y += h + 4
+        }
       })
       servicosRelatorioManuais.forEach(s => {
         const texto = `- ${s.nome} (${s.quantidade} ${s.unidade || 'un'})${s.descricao ? ' - ' + s.descricao : ''}`
         doc.text(texto, 16, y)
         y += 6
+        if (s.foto) {
+          const props = doc.getImageProperties(s.foto)
+          const w = 180
+          const h = props.height * w / props.width
+          if (y + h > 280) {
+            doc.addPage()
+            y = 20
+          }
+          doc.addImage(s.foto, props.fileType || 'JPEG', 14, y, w, h)
+          y += h + 4
+        }
       })
     }
 
@@ -432,7 +490,7 @@ function App() {
     setDesconto(0)
     setServicosRelatorioSelecionados([])
     setServicosRelatorioManuais([])
-    setNovoServicoRelatorioManual({ nome: '', descricao: '', quantidade: '', unidade: 'un' })
+    setNovoServicoRelatorioManual({ nome: '', descricao: '', quantidade: '', unidade: 'un', foto: '' })
     setProblemasEletricosSelecionados([])
     setOutrosProblemasSelecionados([])
     setDescricaoRelatorio('')
@@ -965,6 +1023,28 @@ function App() {
                                       value={selecionado.quantidade}
                                       onChange={(e) => atualizarQuantidadeServicoRelatorio(servico.id, e.target.value)}
                                     />
+                                    <Label htmlFor={`descricao-servico-rel-${servico.id}`}>Descrição</Label>
+                                    <Textarea
+                                      id={`descricao-servico-rel-${servico.id}`}
+                                      value={selecionado.descricao}
+                                      onChange={(e) => atualizarDescricaoServicoRelatorio(servico.id, e.target.value)}
+                                      rows={2}
+                                    />
+                                    <Label htmlFor={`foto-servico-rel-${servico.id}`}>Foto</Label>
+                                    <Input
+                                      id={`foto-servico-rel-${servico.id}`}
+                                      type="file"
+                                      accept="image/*"
+                                      capture="environment"
+                                      onChange={(e) => adicionarFotoServicoRelatorio(servico.id, e)}
+                                    />
+                                    {selecionado.foto && (
+                                      <img
+                                        src={selecionado.foto}
+                                        alt="Evidência"
+                                        className="w-full max-w-xs rounded"
+                                      />
+                                    )}
                                   </div>
                                 )}
                               </div>
@@ -1004,20 +1084,44 @@ function App() {
                       value={novoServicoRelatorioManual.unidade}
                       onChange={(e) => setNovoServicoRelatorioManual({ ...novoServicoRelatorioManual, unidade: e.target.value })}
                     />
+                    <Label htmlFor="foto-servico-relatorio">Foto</Label>
+                    <Input
+                      id="foto-servico-relatorio"
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      onChange={handleFotoNovoServicoRelatorioManual}
+                    />
+                    {novoServicoRelatorioManual.foto && (
+                      <img
+                        src={novoServicoRelatorioManual.foto}
+                        alt="Pré-visualização"
+                        className="w-full max-w-xs rounded"
+                      />
+                    )}
                   </div>
                   <Button variant="outline" onClick={adicionarServicoRelatorioManual}>Adicionar</Button>
 
                   {servicosRelatorioManuais.length > 0 && (
                     <div className="space-y-2">
                       {servicosRelatorioManuais.map(servico => (
-                        <div key={servico.id} className="flex justify-between items-center p-3 border rounded">
-                          <span>
-                            {`${servico.nome} - ${servico.quantidade} ${servico.unidade}`}
-                            {servico.descricao ? ` (${servico.descricao})` : ''}
-                          </span>
-                          <Button variant="ghost" size="icon" onClick={() => removerServicoRelatorioManual(servico.id)}>
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                        <div key={servico.id} className="p-3 border rounded space-y-2">
+                          <div className="flex justify-between items-center">
+                            <span>{`${servico.nome} - ${servico.quantidade} ${servico.unidade}`}</span>
+                            <Button variant="ghost" size="icon" onClick={() => removerServicoRelatorioManual(servico.id)}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                          {servico.descricao && (
+                            <p className="text-sm text-gray-600">{servico.descricao}</p>
+                          )}
+                          {servico.foto && (
+                            <img
+                              src={servico.foto}
+                              alt="Evidência"
+                              className="w-full max-w-xs rounded"
+                            />
+                          )}
                         </div>
                       ))}
                     </div>
