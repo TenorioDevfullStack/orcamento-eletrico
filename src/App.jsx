@@ -23,7 +23,7 @@ function App() {
   const [servicosManuais, setServicosManuais] = useState([])
   const [despesasExtras, setDespesasExtras] = useState([])
   const [observacoesGerais, setObservacoesGerais] = useState('')
-  const [novoServicoManual, setNovoServicoManual] = useState({ nome: '', descricao: '', preco: '' })
+  const [novoServicoManual, setNovoServicoManual] = useState({ nome: '', descricao: '', quantidade: '', preco_unitario: '' })
   const [novaDespesa, setNovaDespesa] = useState({ descricao: '', valor: '' })
   const [problemasEletricosSelecionados, setProblemasEletricosSelecionados] = useState([])
   const [outrosProblemasSelecionados, setOutrosProblemasSelecionados] = useState([])
@@ -69,13 +69,18 @@ function App() {
 
   // Função para adicionar serviço manual
   const adicionarServicoManual = () => {
-    if (novoServicoManual.nome && novoServicoManual.preco) {
-      setServicosManuais([...servicosManuais, {
-        id: Date.now().toString(),
-        ...novoServicoManual,
-        preco: parseFloat(novoServicoManual.preco) || 0
-      }])
-      setNovoServicoManual({ nome: '', descricao: '', preco: '' })
+    if (novoServicoManual.nome && novoServicoManual.quantidade && novoServicoManual.preco_unitario) {
+      setServicosManuais([
+        ...servicosManuais,
+        {
+          id: Date.now().toString(),
+          nome: novoServicoManual.nome,
+          descricao: novoServicoManual.descricao,
+          quantidade: parseFloat(novoServicoManual.quantidade) || 0,
+          preco_unitario: parseFloat(novoServicoManual.preco_unitario) || 0
+        }
+      ])
+      setNovoServicoManual({ nome: '', descricao: '', quantidade: '', preco_unitario: '' })
     }
   }
 
@@ -128,7 +133,7 @@ function App() {
   // Calcular valor total
   const calcularTotal = () => {
     const totalServicos = servicosSelecionados.reduce((acc, s) => acc + (s.preco_unitario * s.quantidade), 0)
-    const totalManuais = servicosManuais.reduce((acc, s) => acc + s.preco, 0)
+    const totalManuais = servicosManuais.reduce((acc, s) => acc + (s.preco_unitario * s.quantidade), 0)
     const totalDespesas = despesasExtras.reduce((acc, d) => acc + d.valor, 0)
     return totalServicos + totalManuais + totalDespesas
   }
@@ -173,7 +178,12 @@ function App() {
           s.observacoes || '',
           `R$ ${(s.preco_unitario * s.quantidade).toFixed(2)}`
         ]),
-        ...orcamento.servicosManuais.map(s => [s.nome, 1, s.descricao || '', `R$ ${s.preco.toFixed(2)}`])
+        ...orcamento.servicosManuais.map(s => [
+          s.nome,
+          s.quantidade,
+          s.descricao || '',
+          `R$ ${(s.preco_unitario * s.quantidade).toFixed(2)}`
+        ])
       ]
     })
 
@@ -464,13 +474,13 @@ function App() {
                 <CardDescription>Adicione serviços que não estão na lista padrão</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div>
                     <Label htmlFor="nome-manual">Nome do Serviço</Label>
                     <Input
                       id="nome-manual"
                       value={novoServicoManual.nome}
-                      onChange={(e) => setNovoServicoManual({...novoServicoManual, nome: e.target.value})}
+                      onChange={(e) => setNovoServicoManual({ ...novoServicoManual, nome: e.target.value })}
                       placeholder="Ex: Instalação especial"
                     />
                   </div>
@@ -479,19 +489,30 @@ function App() {
                     <Input
                       id="descricao-manual"
                       value={novoServicoManual.descricao}
-                      onChange={(e) => setNovoServicoManual({...novoServicoManual, descricao: e.target.value})}
+                      onChange={(e) => setNovoServicoManual({ ...novoServicoManual, descricao: e.target.value })}
                       placeholder="Descrição do serviço"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="preco-manual">Preço</Label>
+                    <Label htmlFor="quantidade-manual">Qtd / m²</Label>
+                    <Input
+                      id="quantidade-manual"
+                      type="number"
+                      step="0.01"
+                      value={novoServicoManual.quantidade}
+                      onChange={(e) => setNovoServicoManual({ ...novoServicoManual, quantidade: e.target.value })}
+                      placeholder="0"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="preco-manual">Valor unitário</Label>
                     <div className="flex gap-2">
                       <Input
                         id="preco-manual"
                         type="number"
                         step="0.01"
-                        value={novoServicoManual.preco}
-                        onChange={(e) => setNovoServicoManual({...novoServicoManual, preco: e.target.value})}
+                        value={novoServicoManual.preco_unitario}
+                        onChange={(e) => setNovoServicoManual({ ...novoServicoManual, preco_unitario: e.target.value })}
                         placeholder="0.00"
                       />
                       <Button onClick={adicionarServicoManual} size="sm">
@@ -511,7 +532,7 @@ function App() {
                           {servico.descricao && <span className="text-gray-600 ml-2">- {servico.descricao}</span>}
                         </div>
                         <div className="flex items-center gap-2">
-                          <Badge>R$ {servico.preco.toFixed(2)}</Badge>
+                          <Badge>{`${servico.quantidade} x R$ ${servico.preco_unitario.toFixed(2)} = R$ ${(servico.quantidade * servico.preco_unitario).toFixed(2)}`}</Badge>
                           <Button
                             variant="destructive"
                             size="sm"
@@ -669,7 +690,7 @@ function App() {
                             <p className="font-medium">{servico.nome}</p>
                             {servico.descricao && <p className="text-sm text-gray-600">{servico.descricao}</p>}
                           </div>
-                          <Badge>R$ {servico.preco.toFixed(2)}</Badge>
+                          <Badge>{`${servico.quantidade} x R$ ${servico.preco_unitario.toFixed(2)} = R$ ${(servico.quantidade * servico.preco_unitario).toFixed(2)}`}</Badge>
                         </div>
                       ))}
                     </div>
