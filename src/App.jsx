@@ -8,7 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox.jsx'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs.jsx'
 import { Badge } from '@/components/ui/badge.jsx'
 import { Separator } from '@/components/ui/separator.jsx'
-import { Plus, Trash2, FileText, Calculator, User, Zap, Camera } from 'lucide-react'
+import { Plus, Trash2, FileText, Calculator, User, Zap, Camera, Folder } from 'lucide-react'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import { services, categories } from './data/services.js'
@@ -33,6 +33,22 @@ function App() {
   const [servicosRelatorioManuais, setServicosRelatorioManuais] = useState([])
   const [novoServicoRelatorioManual, setNovoServicoRelatorioManual] = useState({ nome: '', descricao: '', quantidade: '', unidade: 'un' })
   const [desconto, setDesconto] = useState(0)
+
+  const [arquivos, setArquivos] = useState(() => {
+    const saved = localStorage.getItem('arquivos')
+    return saved ? JSON.parse(saved) : {}
+  })
+
+  const salvarArquivo = (clienteNome, tipo, pdf, nome) => {
+    const key = clienteNome || 'Sem nome'
+    const novos = { ...arquivos }
+    if (!novos[key]) {
+      novos[key] = { orcamentos: [], relatorios: [] }
+    }
+    novos[key][tipo].push({ data: new Date().toLocaleDateString('pt-BR'), pdf, nome })
+    setArquivos(novos)
+    localStorage.setItem('arquivos', JSON.stringify(novos))
+  }
 
   // Função para adicionar/remover serviços selecionados
   const toggleServico = (servico) => {
@@ -256,6 +272,8 @@ function App() {
       doc.text(`Total: R$ ${valorTotal.toFixed(2)}`, 14, finalY + 20)
     }
 
+    const pdf = doc.output('datauristring')
+    salvarArquivo(orcamento.cliente.nome, 'orcamentos', pdf, `orcamento-${orcamento.cliente.nome || 'cliente'}.pdf`)
     doc.save(`orcamento-${orcamento.cliente.nome || 'cliente'}.pdf`)
     alert('Orçamento gerado em PDF com sucesso!')
   }
@@ -337,7 +355,9 @@ function App() {
       }
     })
 
-    doc.save('relatorio.pdf')
+    const pdf = doc.output('datauristring')
+    salvarArquivo(cliente.nome, 'relatorios', pdf, `relatorio-${cliente.nome || 'cliente'}.pdf`)
+    doc.save(`relatorio-${cliente.nome || 'cliente'}.pdf`)
     alert('Relatório gerado em PDF com sucesso!')
   }
 
@@ -391,6 +411,10 @@ function App() {
             <TabsTrigger value="relatorio" className="flex items-center gap-2 text-xs sm:text-sm whitespace-normal">
               <Camera className="h-4 w-4" />
               Relatório
+            </TabsTrigger>
+            <TabsTrigger value="arquivos" className="flex items-center gap-2 text-xs sm:text-sm whitespace-normal">
+              <Folder className="h-4 w-4" />
+              Arquivos
             </TabsTrigger>
           </TabsList>
 
@@ -1019,13 +1043,70 @@ function App() {
                   ))}
                 </div>
 
-                <Button onClick={gerarRelatorio} className="w-full">
-                  <FileText className="h-4 w-4 mr-2" />
-                  Gerar Relatório
-                </Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
+            <Button onClick={gerarRelatorio} className="w-full">
+              <FileText className="h-4 w-4 mr-2" />
+              Gerar Relatório
+            </Button>
+          </CardContent>
+        </Card>
+        </TabsContent>
+        <TabsContent value="arquivos" className="space-y-4">
+          {Object.keys(arquivos).length === 0 ? (
+            <p className="text-gray-500">Nenhum documento salvo.</p>
+          ) : (
+            Object.entries(arquivos).map(([nome, dados]) => (
+              <Card key={nome}>
+                <CardHeader>
+                  <CardTitle>{nome}</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <h3 className="font-semibold">Orçamentos</h3>
+                    {dados.orcamentos.length ? (
+                      <ul className="list-disc pl-4">
+                        {dados.orcamentos.map((o, i) => (
+                          <li key={i}>
+                            <a
+                              href={o.pdf}
+                              download={o.nome}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              {o.data}
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-sm text-gray-500">Nenhum orçamento salvo</p>
+                    )}
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">Relatórios</h3>
+                    {dados.relatorios.length ? (
+                      <ul className="list-disc pl-4">
+                        {dados.relatorios.map((r, i) => (
+                          <li key={i}>
+                            <a
+                              href={r.pdf}
+                              download={r.nome}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              {r.data}
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-sm text-gray-500">Nenhum relatório salvo</p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          )}
+        </TabsContent>
         </Tabs>
       </div>
     </div>
