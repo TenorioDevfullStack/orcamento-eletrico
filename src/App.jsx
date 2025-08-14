@@ -8,6 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox.jsx'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs.jsx'
 import { Badge } from '@/components/ui/badge.jsx'
 import { Separator } from '@/components/ui/separator.jsx'
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion.jsx'
 import { Plus, Trash2, FileText, Calculator, User, Zap, Camera, Folder } from 'lucide-react'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
@@ -200,6 +201,10 @@ function App() {
 
   // Função para gerar orçamento
   const gerarOrcamento = () => {
+    if (!cliente.nome) {
+      alert('Por favor, preencha o nome do cliente antes de gerar o orçamento.')
+      return
+    }
     const subtotal = calcularTotal()
     const valorTotal = subtotal * (1 - desconto / 100)
     const orcamento = {
@@ -280,6 +285,10 @@ function App() {
 
   // Função para gerar relatório
   const gerarRelatorio = () => {
+    if (!cliente.nome) {
+      alert('Por favor, preencha o nome do cliente antes de gerar o relatório.')
+      return
+    }
     const doc = new jsPDF()
     doc.setFontSize(18)
     doc.text('Relatório de Inspeção', 14, 20)
@@ -436,11 +445,11 @@ function App() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="contato">Contato *</Label>
+                  <Label htmlFor="contato">Contato</Label>
                   <Input
                     id="contato"
                     value={cliente.contato}
-                    onChange={(e) => setCliente({...cliente, contato: e.target.value})}
+                    onChange={(e) => setCliente({ ...cliente, contato: e.target.value })}
                     placeholder="Telefone ou email"
                   />
                 </div>
@@ -453,9 +462,9 @@ function App() {
                     placeholder="Endereço do cliente"
                   />
                 </div>
-                <Button 
+                <Button
                   onClick={() => setCurrentTab('servicos')}
-                  disabled={!cliente.nome || !cliente.contato}
+                  disabled={!cliente.nome}
                   className="w-full"
                 >
                   Próximo: Selecionar Serviços
@@ -472,81 +481,85 @@ function App() {
                 <CardDescription>Selecione os serviços que serão executados</CardDescription>
               </CardHeader>
               <CardContent>
-                {categories.map(categoria => (
-                  <div key={categoria} className="mb-6">
-                    <h3 className="text-lg font-semibold mb-3 text-blue-600">{categoria}</h3>
-                    <div className="grid gap-3">
-                      {services.filter(s => s.categoria === categoria).map(servico => {
-                        const selecionado = servicosSelecionados.find(s => s.id === servico.id)
-                        return (
-                          <div key={servico.id} className="border rounded-lg p-4">
-                            <div className="flex items-start gap-3">
-                              <Checkbox
-                                checked={!!selecionado}
-                                onCheckedChange={() => toggleServico(servico)}
-                              />
-                              <div className="flex-1">
-                                <div className="flex justify-between items-start mb-2">
-                                  <div>
-                                    <h4 className="font-medium">{servico.nome}</h4>
-                                    <p className="text-sm text-gray-600">{servico.descricao}</p>
-                                  </div>
-                                  <Badge variant="secondary">
-                                    {servico.categoria === 'Laudos'
-                                      ? `R$ ${servico.preco_padrao.toFixed(2)}/m²`
-                                      : `R$ ${servico.preco_padrao.toFixed(2)}`
-                                    }
-                                  </Badge>
-                                </div>
+                <Accordion type="multiple" className="w-full">
+                  {categories.map(categoria => (
+                    <AccordionItem key={categoria} value={categoria}>
+                      <AccordionTrigger className="text-lg font-semibold text-blue-600">{categoria}</AccordionTrigger>
+                      <AccordionContent>
+                        <div className="grid gap-3">
+                          {services.filter(s => s.categoria === categoria).map(servico => {
+                            const selecionado = servicosSelecionados.find(s => s.id === servico.id)
+                            return (
+                              <div key={servico.id} className="border rounded-lg p-4">
+                                <div className="flex items-start gap-3">
+                                  <Checkbox
+                                    checked={!!selecionado}
+                                    onCheckedChange={() => toggleServico(servico)}
+                                  />
+                                  <div className="flex-1">
+                                    <div className="flex justify-between items-start mb-2">
+                                      <div>
+                                        <h4 className="font-medium">{servico.nome}</h4>
+                                        <p className="text-sm text-gray-600">{servico.descricao}</p>
+                                      </div>
+                                      <Badge variant="secondary">
+                                        {servico.categoria === 'Laudos'
+                                          ? `R$ ${servico.preco_padrao.toFixed(2)}/m²`
+                                          : `R$ ${servico.preco_padrao.toFixed(2)}`
+                                        }
+                                      </Badge>
+                                    </div>
 
-                                {selecionado && (
-                                  <div className="mt-3 space-y-2">
-                                    <div>
-                                      <Label htmlFor={`quantidade-${servico.id}`}>
-                                        {servico.categoria === 'Laudos' ? 'Metros²' : 'Quantidade'}
-                                      </Label>
-                                      <Input
-                                        id={`quantidade-${servico.id}`}
-                                        type="number"
-                                        min="0"
-                                        step={servico.categoria === 'Laudos' ? '0.01' : '1'}
-                                        value={selecionado.quantidade}
-                                        onChange={(e) => atualizarQuantidadeServico(servico.id, e.target.value)}
-                                        className="w-24"
-                                      />
-                                    </div>
-                                    <div>
-                                      <Label htmlFor={`preco-${servico.id}`}>Preço para este orçamento</Label>
-                                      <Input
-                                        id={`preco-${servico.id}`}
-                                        type="number"
-                                        step="0.01"
-                                        value={selecionado.preco_unitario}
-                                        onChange={(e) => atualizarPrecoServico(servico.id, e.target.value)}
-                                        className="w-32"
-                                      />
-                                    </div>
-                                    <div>
-                                      <Label htmlFor={`obs-${servico.id}`}>Observações</Label>
-                                      <Textarea
-                                        id={`obs-${servico.id}`}
-                                        value={selecionado.observacoes}
-                                        onChange={(e) => atualizarObservacoesServico(servico.id, e.target.value)}
-                                        placeholder="Observações específicas para este serviço"
-                                        rows={2}
-                                      />
-                                    </div>
+                                    {selecionado && (
+                                      <div className="mt-3 space-y-2">
+                                        <div>
+                                          <Label htmlFor={`quantidade-${servico.id}`}>
+                                            {servico.categoria === 'Laudos' ? 'Metros²' : 'Quantidade'}
+                                          </Label>
+                                          <Input
+                                            id={`quantidade-${servico.id}`}
+                                            type="number"
+                                            min="0"
+                                            step={servico.categoria === 'Laudos' ? '0.01' : '1'}
+                                            value={selecionado.quantidade}
+                                            onChange={(e) => atualizarQuantidadeServico(servico.id, e.target.value)}
+                                            className="w-24"
+                                          />
+                                        </div>
+                                        <div>
+                                          <Label htmlFor={`preco-${servico.id}`}>Preço para este orçamento</Label>
+                                          <Input
+                                            id={`preco-${servico.id}`}
+                                            type="number"
+                                            step="0.01"
+                                            value={selecionado.preco_unitario}
+                                            onChange={(e) => atualizarPrecoServico(servico.id, e.target.value)}
+                                            className="w-32"
+                                          />
+                                        </div>
+                                        <div>
+                                          <Label htmlFor={`obs-${servico.id}`}>Observações</Label>
+                                          <Textarea
+                                            id={`obs-${servico.id}`}
+                                            value={selecionado.observacoes}
+                                            onChange={(e) => atualizarObservacoesServico(servico.id, e.target.value)}
+                                            placeholder="Observações específicas para este serviço"
+                                            rows={2}
+                                          />
+                                        </div>
+                                      </div>
+                                    )}
                                   </div>
-                                )}
+                                </div>
                               </div>
-                            </div>
-                          </div>
-                        )
-                      })}
-                    </div>
-                  </div>
-                ))}
-                
+                            )
+                          })}
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                  ))}
+                </Accordion>
+
                 <div className="flex gap-2 mt-6">
                   <Button variant="outline" onClick={() => setCurrentTab('cliente')}>
                     Voltar
@@ -841,7 +854,7 @@ function App() {
                   <Button variant="outline" onClick={() => setCurrentTab('extras')}>
                     Voltar
                   </Button>
-                  <Button onClick={gerarOrcamento} className="flex-1">
+                  <Button onClick={gerarOrcamento} className="flex-1" disabled={!cliente.nome}>
                     <FileText className="h-4 w-4 mr-2" />
                     Gerar Orçamento
                   </Button>
@@ -864,48 +877,52 @@ function App() {
                 <CardDescription>Selecione os serviços recomendados</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                {categories.map(categoria => (
-                  <div key={categoria} className="space-y-2">
-                    <h3 className="font-semibold">{categoria}</h3>
-                    <div className="grid gap-4">
-                      {services.filter(s => s.categoria === categoria).map(servico => {
-                        const selecionado = servicosRelatorioSelecionados.find(s => s.id === servico.id)
-                        const isLaudo = servico.categoria === 'Laudos'
-                        const isCabo = servico.categoria === 'Passagem de Cabos e Eletrodutos'
-                        const label = isLaudo ? 'Metros²' : isCabo ? 'Metros' : 'Quantidade'
-                        return (
-                          <div key={servico.id} className="border rounded-lg p-4">
-                            <div className="flex items-center gap-2">
-                              <Checkbox
-                                checked={!!selecionado}
-                                onCheckedChange={() => toggleServicoRelatorio(servico)}
-                              />
-                              <div>
-                                <h4 className="font-medium">{servico.nome}</h4>
-                                {servico.descricao && (
-                                  <p className="text-sm text-gray-600">{servico.descricao}</p>
+                <Accordion type="multiple" className="w-full">
+                  {categories.map(categoria => (
+                    <AccordionItem key={categoria} value={categoria}>
+                      <AccordionTrigger className="font-semibold">{categoria}</AccordionTrigger>
+                      <AccordionContent>
+                        <div className="grid gap-4">
+                          {services.filter(s => s.categoria === categoria).map(servico => {
+                            const selecionado = servicosRelatorioSelecionados.find(s => s.id === servico.id)
+                            const isLaudo = servico.categoria === 'Laudos'
+                            const isCabo = servico.categoria === 'Passagem de Cabos e Eletrodutos'
+                            const label = isLaudo ? 'Metros²' : isCabo ? 'Metros' : 'Quantidade'
+                            return (
+                              <div key={servico.id} className="border rounded-lg p-4">
+                                <div className="flex items-center gap-2">
+                                  <Checkbox
+                                    checked={!!selecionado}
+                                    onCheckedChange={() => toggleServicoRelatorio(servico)}
+                                  />
+                                  <div>
+                                    <h4 className="font-medium">{servico.nome}</h4>
+                                    {servico.descricao && (
+                                      <p className="text-sm text-gray-600">{servico.descricao}</p>
+                                    )}
+                                  </div>
+                                </div>
+                                {selecionado && (
+                                  <div className="mt-4 space-y-2">
+                                    <Label htmlFor={`quantidade-rel-${servico.id}`}>{label}</Label>
+                                    <Input
+                                      id={`quantidade-rel-${servico.id}`}
+                                      type="number"
+                                      min="0"
+                                      step={(isLaudo || isCabo) ? '0.01' : '1'}
+                                      value={selecionado.quantidade}
+                                      onChange={(e) => atualizarQuantidadeServicoRelatorio(servico.id, e.target.value)}
+                                    />
+                                  </div>
                                 )}
                               </div>
-                            </div>
-                            {selecionado && (
-                              <div className="mt-4 space-y-2">
-                                <Label htmlFor={`quantidade-rel-${servico.id}`}>{label}</Label>
-                                <Input
-                                  id={`quantidade-rel-${servico.id}`}
-                                  type="number"
-                                  min="0"
-                                  step={(isLaudo || isCabo) ? '0.01' : '1'}
-                                  value={selecionado.quantidade}
-                                  onChange={(e) => atualizarQuantidadeServicoRelatorio(servico.id, e.target.value)}
-                                />
-                              </div>
-                            )}
-                          </div>
-                        )
-                      })}
-                    </div>
-                  </div>
-                ))}
+                            )
+                          })}
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                  ))}
+                </Accordion>
 
                 <div className="space-y-4">
                   <h3 className="font-semibold">Adicionar Serviço Manual</h3>
@@ -966,47 +983,52 @@ function App() {
                 <CardDescription>Capture fotos e descreva problemas encontrados</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div>
-                  <h3 className="font-semibold mb-2">Problemas Elétricos</h3>
-                  <div className="grid gap-2">
-                    {problemasEletricos.map(p => (
-                      <Label key={p} className="flex items-center gap-2">
-                        <Checkbox
-                          checked={problemasEletricosSelecionados.includes(p)}
-                          onCheckedChange={() =>
-                            toggleSelecao(
-                              p,
-                              problemasEletricosSelecionados,
-                              setProblemasEletricosSelecionados
-                            )
-                          }
-                        />
-                        {p}
-                      </Label>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <h3 className="font-semibold mb-2">Outros Problemas</h3>
-                  <div className="grid gap-2">
-                    {outrosProblemas.map(p => (
-                      <Label key={p} className="flex items-center gap-2">
-                        <Checkbox
-                          checked={outrosProblemasSelecionados.includes(p)}
-                          onCheckedChange={() =>
-                            toggleSelecao(
-                              p,
-                              outrosProblemasSelecionados,
-                              setOutrosProblemasSelecionados
-                            )
-                          }
-                        />
-                        {p}
-                      </Label>
-                    ))}
-                  </div>
-                </div>
+                <Accordion type="multiple" className="w-full">
+                  <AccordionItem value="problemas-eletricos">
+                    <AccordionTrigger className="font-semibold">Problemas Elétricos</AccordionTrigger>
+                    <AccordionContent>
+                      <div className="grid gap-2">
+                        {problemasEletricos.map(p => (
+                          <Label key={p} className="flex items-center gap-2">
+                            <Checkbox
+                              checked={problemasEletricosSelecionados.includes(p)}
+                              onCheckedChange={() =>
+                                toggleSelecao(
+                                  p,
+                                  problemasEletricosSelecionados,
+                                  setProblemasEletricosSelecionados
+                                )
+                              }
+                            />
+                            {p}
+                          </Label>
+                        ))}
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                  <AccordionItem value="outros-problemas">
+                    <AccordionTrigger className="font-semibold">Outros Problemas</AccordionTrigger>
+                    <AccordionContent>
+                      <div className="grid gap-2">
+                        {outrosProblemas.map(p => (
+                          <Label key={p} className="flex items-center gap-2">
+                            <Checkbox
+                              checked={outrosProblemasSelecionados.includes(p)}
+                              onCheckedChange={() =>
+                                toggleSelecao(
+                                  p,
+                                  outrosProblemasSelecionados,
+                                  setOutrosProblemasSelecionados
+                                )
+                              }
+                            />
+                            {p}
+                          </Label>
+                        ))}
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
 
                 <div>
                   <Label htmlFor="descricao-relatorio">Descrição Adicional</Label>
@@ -1043,7 +1065,7 @@ function App() {
                   ))}
                 </div>
 
-            <Button onClick={gerarRelatorio} className="w-full">
+            <Button onClick={gerarRelatorio} className="w-full" disabled={!cliente.nome}>
               <FileText className="h-4 w-4 mr-2" />
               Gerar Relatório
             </Button>
