@@ -169,11 +169,31 @@ function App() {
 
   // Funções para relatório
   const toggleSelecao = (item, lista, setLista) => {
-    if (lista.includes(item)) {
-      setLista(lista.filter(p => p !== item))
+    const existe = lista.find(p => p.problema === item)
+    if (existe) {
+      setLista(lista.filter(p => p.problema !== item))
     } else {
-      setLista([...lista, item])
+      setLista([...lista, { problema: item, descricao: '', foto: '' }])
     }
+  }
+
+  const atualizarDescricaoProblema = (item, descricao, lista, setLista) => {
+    setLista(lista.map(p =>
+      p.problema === item ? { ...p, descricao } : p
+    ))
+  }
+
+  const adicionarFotoProblema = (item, e, lista, setLista) => {
+    const file = e.target.files && e.target.files[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      setLista(lista.map(p =>
+        p.problema === item ? { ...p, foto: reader.result } : p
+      ))
+    }
+    reader.readAsDataURL(file)
+    e.target.value = ''
   }
 
   const adicionarFotoRelatorio = (e) => {
@@ -302,8 +322,24 @@ function App() {
       doc.text('Problemas Elétricos:', 14, y)
       y += 6
       problemasEletricosSelecionados.forEach(p => {
-        doc.text(`- ${p}`, 16, y)
+        doc.text(`- ${p.problema}`, 16, y)
         y += 6
+        if (p.descricao) {
+          const linhas = doc.splitTextToSize(p.descricao, 180)
+          doc.text(linhas, 18, y)
+          y += linhas.length * 6
+        }
+        if (p.foto) {
+          const props = doc.getImageProperties(p.foto)
+          const w = 180
+          const h = props.height * w / props.width
+          if (y + h > 280) {
+            doc.addPage()
+            y = 20
+          }
+          doc.addImage(p.foto, props.fileType || 'JPEG', 14, y, w, h)
+          y += h + 4
+        }
       })
     }
 
@@ -311,8 +347,24 @@ function App() {
       doc.text('Outros Problemas:', 14, y)
       y += 6
       outrosProblemasSelecionados.forEach(p => {
-        doc.text(`- ${p}`, 16, y)
+        doc.text(`- ${p.problema}`, 16, y)
         y += 6
+        if (p.descricao) {
+          const linhas = doc.splitTextToSize(p.descricao, 180)
+          doc.text(linhas, 18, y)
+          y += linhas.length * 6
+        }
+        if (p.foto) {
+          const props = doc.getImageProperties(p.foto)
+          const w = 180
+          const h = props.height * w / props.width
+          if (y + h > 280) {
+            doc.addPage()
+            y = 20
+          }
+          doc.addImage(p.foto, props.fileType || 'JPEG', 14, y, w, h)
+          y += h + 4
+        }
       })
     }
 
@@ -987,44 +1039,128 @@ function App() {
                   <AccordionItem value="problemas-eletricos">
                     <AccordionTrigger className="font-semibold">Problemas Elétricos</AccordionTrigger>
                     <AccordionContent>
-                      <div className="grid gap-2">
-                        {problemasEletricos.map(p => (
-                          <Label key={p} className="flex items-center gap-2">
-                            <Checkbox
-                              checked={problemasEletricosSelecionados.includes(p)}
-                              onCheckedChange={() =>
-                                toggleSelecao(
-                                  p,
-                                  problemasEletricosSelecionados,
-                                  setProblemasEletricosSelecionados
-                                )
-                              }
-                            />
-                            {p}
-                          </Label>
-                        ))}
+                      <div className="grid gap-4">
+                        {problemasEletricos.map(p => {
+                          const selecionado = problemasEletricosSelecionados.find(pe => pe.problema === p)
+                          return (
+                            <div key={p} className="space-y-2">
+                              <Label className="flex items-center gap-2">
+                                <Checkbox
+                                  checked={!!selecionado}
+                                  onCheckedChange={() =>
+                                    toggleSelecao(
+                                      p,
+                                      problemasEletricosSelecionados,
+                                      setProblemasEletricosSelecionados
+                                    )
+                                  }
+                                />
+                                {p}
+                              </Label>
+                              {selecionado && (
+                                <div className="pl-6 space-y-2">
+                                  <Textarea
+                                    value={selecionado.descricao}
+                                    onChange={(e) =>
+                                      atualizarDescricaoProblema(
+                                        p,
+                                        e.target.value,
+                                        problemasEletricosSelecionados,
+                                        setProblemasEletricosSelecionados
+                                      )
+                                    }
+                                    placeholder="Descrição do problema"
+                                    rows={2}
+                                  />
+                                  <Input
+                                    type="file"
+                                    accept="image/*"
+                                    capture="environment"
+                                    onChange={(e) =>
+                                      adicionarFotoProblema(
+                                        p,
+                                        e,
+                                        problemasEletricosSelecionados,
+                                        setProblemasEletricosSelecionados
+                                      )
+                                    }
+                                  />
+                                  {selecionado.foto && (
+                                    <img
+                                      src={selecionado.foto}
+                                      alt="Evidência"
+                                      className="w-full max-w-xs rounded"
+                                    />
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          )
+                        })}
                       </div>
                     </AccordionContent>
                   </AccordionItem>
                   <AccordionItem value="outros-problemas">
                     <AccordionTrigger className="font-semibold">Outros Problemas</AccordionTrigger>
                     <AccordionContent>
-                      <div className="grid gap-2">
-                        {outrosProblemas.map(p => (
-                          <Label key={p} className="flex items-center gap-2">
-                            <Checkbox
-                              checked={outrosProblemasSelecionados.includes(p)}
-                              onCheckedChange={() =>
-                                toggleSelecao(
-                                  p,
-                                  outrosProblemasSelecionados,
-                                  setOutrosProblemasSelecionados
-                                )
-                              }
-                            />
-                            {p}
-                          </Label>
-                        ))}
+                      <div className="grid gap-4">
+                        {outrosProblemas.map(p => {
+                          const selecionado = outrosProblemasSelecionados.find(op => op.problema === p)
+                          return (
+                            <div key={p} className="space-y-2">
+                              <Label className="flex items-center gap-2">
+                                <Checkbox
+                                  checked={!!selecionado}
+                                  onCheckedChange={() =>
+                                    toggleSelecao(
+                                      p,
+                                      outrosProblemasSelecionados,
+                                      setOutrosProblemasSelecionados
+                                    )
+                                  }
+                                />
+                                {p}
+                              </Label>
+                              {selecionado && (
+                                <div className="pl-6 space-y-2">
+                                  <Textarea
+                                    value={selecionado.descricao}
+                                    onChange={(e) =>
+                                      atualizarDescricaoProblema(
+                                        p,
+                                        e.target.value,
+                                        outrosProblemasSelecionados,
+                                        setOutrosProblemasSelecionados
+                                      )
+                                    }
+                                    placeholder="Descrição do problema"
+                                    rows={2}
+                                  />
+                                  <Input
+                                    type="file"
+                                    accept="image/*"
+                                    capture="environment"
+                                    onChange={(e) =>
+                                      adicionarFotoProblema(
+                                        p,
+                                        e,
+                                        outrosProblemasSelecionados,
+                                        setOutrosProblemasSelecionados
+                                      )
+                                    }
+                                  />
+                                  {selecionado.foto && (
+                                    <img
+                                      src={selecionado.foto}
+                                      alt="Evidência"
+                                      className="w-full max-w-xs rounded"
+                                    />
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          )
+                        })}
                       </div>
                     </AccordionContent>
                   </AccordionItem>
