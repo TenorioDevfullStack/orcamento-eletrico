@@ -29,6 +29,7 @@ function App() {
   const [outrosProblemasSelecionados, setOutrosProblemasSelecionados] = useState([])
   const [descricaoRelatorio, setDescricaoRelatorio] = useState('')
   const [fotosRelatorio, setFotosRelatorio] = useState([])
+  const [desconto, setDesconto] = useState(0)
 
   // Função para adicionar/remover serviços selecionados
   const toggleServico = (servico) => {
@@ -134,13 +135,17 @@ function App() {
 
   // Função para gerar orçamento
   const gerarOrcamento = () => {
+    const subtotal = calcularTotal()
+    const valorTotal = subtotal * (1 - desconto / 100)
     const orcamento = {
       cliente,
       servicosSelecionados,
       servicosManuais,
       despesasExtras,
       observacoesGerais,
-      valorTotal: calcularTotal(),
+      desconto,
+      subtotal,
+      valorTotal,
       dataCriacao: new Date().toLocaleDateString('pt-BR')
     }
 
@@ -189,7 +194,13 @@ function App() {
     }
 
     doc.setFontSize(14)
-    doc.text(`Total: R$ ${orcamento.valorTotal.toFixed(2)}`, 14, finalY + 20)
+    if (desconto > 0) {
+      doc.text(`Subtotal: R$ ${subtotal.toFixed(2)}`, 14, finalY + 20)
+      doc.text(`Desconto (${desconto}%): -R$ ${(subtotal - valorTotal).toFixed(2)}`, 14, finalY + 27)
+      doc.text(`Total: R$ ${valorTotal.toFixed(2)}`, 14, finalY + 34)
+    } else {
+      doc.text(`Total: R$ ${valorTotal.toFixed(2)}`, 14, finalY + 20)
+    }
 
     doc.save(`orcamento-${orcamento.cliente.nome || 'cliente'}.pdf`)
     alert('Orçamento gerado em PDF com sucesso!')
@@ -264,6 +275,7 @@ function App() {
     setServicosManuais([])
     setDespesasExtras([])
     setObservacoesGerais('')
+    setDesconto(0)
     setCurrentTab('cliente')
   }
 
@@ -689,10 +701,22 @@ function App() {
 
                 <Separator />
 
+                {/* Desconto */}
+                <div className="flex justify-end items-center gap-2">
+                  <Label htmlFor="desconto">Desconto (%)</Label>
+                  <Input
+                    id="desconto"
+                    type="number"
+                    className="w-24"
+                    value={desconto}
+                    onChange={(e) => setDesconto(parseFloat(e.target.value) || 0)}
+                  />
+                </div>
+
                 {/* Total */}
                 <div className="text-right">
                   <div className="text-2xl font-bold text-green-600">
-                    Total: R$ {calcularTotal().toFixed(2)}
+                    Total: R$ {(calcularTotal() * (1 - desconto / 100)).toFixed(2)}
                   </div>
                   <p className="text-sm text-gray-600">Data: {new Date().toLocaleDateString('pt-BR')}</p>
                 </div>
