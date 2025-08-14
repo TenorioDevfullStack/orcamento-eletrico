@@ -112,12 +112,13 @@ pnpm run dev
 ## 💰 Tabela de Preços Padrão
 
 ### Laudos
-- SPDA: R$ 800,00
-- Sistema de Incêndio: R$ 600,00
-- AVCB: R$ 700,00
-- Instalações Elétricas: R$ 400,00
-- Cálculo de Demanda: R$ 300,00
-- Inspeção Termográfica: R$ 550,00
+- Valor base: R$ 18,88/m²
+- SPDA
+- Sistema de Incêndio
+- AVCB
+- Instalações Elétricas
+- Cálculo de Demanda
+- Inspeção Termográfica
 
 ### Instalações
 - Iluminação: R$ 150,00

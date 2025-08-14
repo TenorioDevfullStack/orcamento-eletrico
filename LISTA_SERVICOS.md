@@ -4,14 +4,14 @@
 
 | Serviço | Descrição | Preço Padrão |
 |---------|-----------|--------------|
-| SPDA | Sistema de Proteção contra Descargas Atmosféricas | R$ 800,00 |
-| Sistema de Incêndio | Laudo de sistema de incêndio | R$ 600,00 |
-| Abrangência de Geradores | Laudo de abrangência de geradores | R$ 500,00 |
-| Instalações Elétricas | Laudo de instalações elétricas | R$ 400,00 |
-| Surp. Plano de Abandono | Laudo de plano de abandono | R$ 350,00 |
-| AVCB | Auto de Vistoria do Corpo de Bombeiros | R$ 700,00 |
-| Cálculo de Demanda Elétrica | Cálculo de demanda elétrica | R$ 300,00 |
-| Inspeção Termográfica | Laudo de inspeção termográfica | R$ 550,00 |
+| SPDA | Sistema de Proteção contra Descargas Atmosféricas | R$ 18,88/m² |
+| Sistema de Incêndio | Laudo de sistema de incêndio | R$ 18,88/m² |
+| Abrangência de Geradores | Laudo de abrangência de geradores | R$ 18,88/m² |
+| Instalações Elétricas | Laudo de instalações elétricas | R$ 18,88/m² |
+| Surp. Plano de Abandono | Laudo de plano de abandono | R$ 18,88/m² |
+| AVCB | Auto de Vistoria do Corpo de Bombeiros | R$ 18,88/m² |
+| Cálculo de Demanda Elétrica | Cálculo de demanda elétrica | R$ 18,88/m² |
+| Inspeção Termográfica | Laudo de inspeção termográfica | R$ 18,88/m² |
 
 ## ⚡ Instalações (14 serviços)
 
@@ -68,7 +68,7 @@
 
 ## 📊 Resumo por Categoria
 
-- **Laudos**: 8 serviços (R$ 300,00 - R$ 800,00)
+- **Laudos**: 8 serviços (R$ 18,88/m²)
 - **Instalações**: 14 serviços (R$ 60,00 - R$ 2.500,00)
 - **Manutenção**: 7 serviços (R$ 40,00 - R$ 250,00)
 - **Projetos**: 7 serviços (R$ 600,00 - R$ 2.000,00)

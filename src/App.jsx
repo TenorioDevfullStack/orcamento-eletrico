@@ -55,7 +55,7 @@ function App() {
   // Função para atualizar quantidade de um serviço selecionado
   const atualizarQuantidadeServico = (id, novaQuantidade) => {
     setServicosSelecionados(servicosSelecionados.map(s =>
-      s.id === id ? { ...s, quantidade: parseInt(novaQuantidade) || 0 } : s
+      s.id === id ? { ...s, quantidade: parseFloat(novaQuantidade) || 0 } : s
     ))
   }
 
@@ -160,11 +160,11 @@ function App() {
 
     autoTable(doc, {
       startY: 60,
-      head: [['Serviço', 'Qtd', 'Observações', 'Preço']],
+      head: [['Serviço', 'Qtd / m²', 'Observações', 'Preço']],
       body: [
         ...orcamento.servicosSelecionados.map(s => [
           s.nome,
-          s.quantidade,
+          s.categoria === 'Laudos' ? `${s.quantidade} m²` : s.quantidade,
           s.observacoes || '',
           `R$ ${(s.preco_unitario * s.quantidade).toFixed(2)}`
         ]),
@@ -376,18 +376,24 @@ function App() {
                                     <p className="text-sm text-gray-600">{servico.descricao}</p>
                                   </div>
                                   <Badge variant="secondary">
-                                    R$ {servico.preco_padrao.toFixed(2)}
+                                    {servico.categoria === 'Laudos'
+                                      ? `R$ ${servico.preco_padrao.toFixed(2)}/m²`
+                                      : `R$ ${servico.preco_padrao.toFixed(2)}`
+                                    }
                                   </Badge>
                                 </div>
-                                
+
                                 {selecionado && (
                                   <div className="mt-3 space-y-2">
                                     <div>
-                                      <Label htmlFor={`quantidade-${servico.id}`}>Quantidade</Label>
+                                      <Label htmlFor={`quantidade-${servico.id}`}>
+                                        {servico.categoria === 'Laudos' ? 'Metros²' : 'Quantidade'}
+                                      </Label>
                                       <Input
                                         id={`quantidade-${servico.id}`}
                                         type="number"
-                                        min="1"
+                                        min="0"
+                                        step={servico.categoria === 'Laudos' ? '0.01' : '1'}
                                         value={selecionado.quantidade}
                                         onChange={(e) => atualizarQuantidadeServico(servico.id, e.target.value)}
                                         className="w-24"
@@ -629,8 +635,10 @@ function App() {
                             )}
                           </div>
                           <Badge>
-                            {servico.quantidade}x R$ {servico.preco_unitario.toFixed(2)} = R$
-                            {(servico.preco_unitario * servico.quantidade).toFixed(2)}
+                            {servico.categoria === 'Laudos'
+                              ? `${servico.quantidade} m² x R$ ${servico.preco_unitario.toFixed(2)} = R$ ${(servico.preco_unitario * servico.quantidade).toFixed(2)}`
+                              : `${servico.quantidade}x R$ ${servico.preco_unitario.toFixed(2)} = R$ ${(servico.preco_unitario * servico.quantidade).toFixed(2)}`
+                            }
                           </Badge>
                         </div>
                       ))}
