@@ -51,6 +51,17 @@ function App() {
     localStorage.setItem('arquivos', JSON.stringify(novos))
   }
 
+  const removerArquivo = (clienteNome, tipo, index) => {
+    const novos = { ...arquivos }
+    if (!novos[clienteNome]) return
+    novos[clienteNome][tipo] = novos[clienteNome][tipo].filter((_, i) => i !== index)
+    if (novos[clienteNome].orcamentos.length === 0 && novos[clienteNome].relatorios.length === 0) {
+      delete novos[clienteNome]
+    }
+    setArquivos(novos)
+    localStorage.setItem('arquivos', JSON.stringify(novos))
+  }
+
   // Função para adicionar/remover serviços selecionados
   const toggleServico = (servico) => {
     const existe = servicosSelecionados.find(s => s.id === servico.id)
@@ -1327,7 +1338,7 @@ function App() {
                     {dados.orcamentos.length ? (
                       <ul className="list-disc pl-4">
                         {dados.orcamentos.map((o, i) => (
-                          <li key={i}>
+                          <li key={i} className="flex items-center justify-between gap-2">
                             <a
                               href={o.pdf}
                               download={o.nome}
@@ -1336,6 +1347,13 @@ function App() {
                             >
                               {o.data}
                             </a>
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => removerArquivo(nome, 'orcamentos', i)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
                           </li>
                         ))}
                       </ul>
@@ -1348,7 +1366,7 @@ function App() {
                     {dados.relatorios.length ? (
                       <ul className="list-disc pl-4">
                         {dados.relatorios.map((r, i) => (
-                          <li key={i}>
+                          <li key={i} className="flex items-center justify-between gap-2">
                             <a
                               href={r.pdf}
                               download={r.nome}
@@ -1357,6 +1375,13 @@ function App() {
                             >
                               {r.data}
                             </a>
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => removerArquivo(nome, 'relatorios', i)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
                           </li>
                         ))}
                       </ul>
