@@ -135,6 +135,7 @@ function App() {
     });
     return parsed;
   });
+  const [buscaArquivo, setBuscaArquivo] = useState("");
 
   const salvarArquivo = (clienteNome, tipo, pdf, nome) => {
     const key = clienteNome || "Sem nome";
@@ -188,6 +189,22 @@ function App() {
       }
       return novos;
 
+    });
+  };
+
+  const removerArquivo = (clienteNome, tipo, index) => {
+    setArquivos((prev) => {
+      const novos = { ...prev };
+      if (!novos[clienteNome]) return prev;
+      novos[clienteNome][tipo].splice(index, 1);
+      if (
+        novos[clienteNome].orcamentos.length === 0 &&
+        novos[clienteNome].relatorios.length === 0
+      ) {
+        delete novos[clienteNome];
+      }
+      localStorage.setItem("arquivos", JSON.stringify(novos));
+      return novos;
     });
   };
 
@@ -798,6 +815,10 @@ function App() {
     setFotosRelatorio([]);
     setCurrentTab("cliente");
   };
+
+  const arquivosFiltrados = Object.entries(arquivos).filter(([nome]) =>
+    nome.toLowerCase().includes(buscaArquivo.toLowerCase())
+  );
 
   return (
     <div className="min-h-screen bg-gray-50 p-4">
@@ -1974,10 +1995,15 @@ function App() {
             </Card>
           </TabsContent>
           <TabsContent value="arquivos" className="space-y-4">
-            {Object.keys(arquivos).length === 0 ? (
+            <Input
+              placeholder="Pesquisar por nome"
+              value={buscaArquivo}
+              onChange={(e) => setBuscaArquivo(e.target.value)}
+            />
+            {arquivosFiltrados.length === 0 ? (
               <p className="text-gray-500">Nenhum documento salvo.</p>
             ) : (
-              Object.entries(arquivos).map(([nome, dados]) => (
+              arquivosFiltrados.map(([nome, dados]) => (
                 <Card key={nome}>
                   <CardHeader>
                     <CardTitle>{nome}</CardTitle>
@@ -1988,15 +2014,23 @@ function App() {
                       {dados.orcamentos?.length ? (
                         <ul className="list-disc pl-4">
                           {dados.orcamentos.map((o, i) => (
-                            <li key={i}>
+                            <li key={i} className="flex items-center justify-between">
                               <a
                                 href={o.pdf}
                                 download={o.nome}
                                 target="_blank"
                                 rel="noopener noreferrer"
+                                className="flex-1"
                               >
                                 {o.data}
                               </a>
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => removerArquivo(nome, "orcamentos", i)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
                             </li>
                           ))}
                         </ul>
@@ -2011,15 +2045,23 @@ function App() {
                       {dados.relatorios?.length ? (
                         <ul className="list-disc pl-4">
                           {dados.relatorios.map((r, i) => (
-                            <li key={i}>
+                            <li key={i} className="flex items-center justify-between">
                               <a
                                 href={r.pdf}
                                 download={r.nome}
                                 target="_blank"
                                 rel="noopener noreferrer"
+                                className="flex-1"
                               >
                                 {r.data}
                               </a>
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => removerArquivo(nome, "relatorios", i)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
                             </li>
                           ))}
                         </ul>
