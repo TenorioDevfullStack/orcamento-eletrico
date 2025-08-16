@@ -156,7 +156,35 @@ function App() {
         nome,
       });
 
-      localStorage.setItem("arquivos", JSON.stringify(novos));
+      const persist = () =>
+        localStorage.setItem("arquivos", JSON.stringify(novos));
+
+      try {
+        persist();
+      } catch (e) {
+        if (e.name === "QuotaExceededError") {
+          console.warn("Armazenamento cheio, removendo arquivos antigos...");
+          while (novos[key][tipo].length > 1) {
+            novos[key][tipo].shift();
+            try {
+              persist();
+              break;
+            } catch (err) {
+              if (err.name !== "QuotaExceededError") throw err;
+            }
+          }
+          try {
+            persist();
+          } catch (err) {
+            console.error(
+              "Não há espaço suficiente no armazenamento para salvar o arquivo",
+              err
+            );
+          }
+        } else {
+          console.error("Erro ao salvar arquivo:", e);
+        }
+      }
       return novos;
     });
   };
