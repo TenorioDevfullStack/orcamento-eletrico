@@ -125,22 +125,40 @@ function App() {
 
   const [arquivos, setArquivos] = useState(() => {
     const saved = localStorage.getItem("arquivos");
-    return saved ? JSON.parse(saved) : {};
+    if (!saved) return {};
+    const parsed = JSON.parse(saved);
+    Object.keys(parsed).forEach((key) => {
+      const entry = parsed[key] || {};
+      if (!Array.isArray(entry.orcamentos)) entry.orcamentos = [];
+      if (!Array.isArray(entry.relatorios)) entry.relatorios = [];
+      parsed[key] = entry;
+    });
+    return parsed;
   });
 
   const salvarArquivo = (clienteNome, tipo, pdf, nome) => {
     const key = clienteNome || "Sem nome";
-    const novos = { ...arquivos };
-    if (!novos[key]) {
-      novos[key] = { orcamentos: [], relatorios: [] };
-    }
-    novos[key][tipo].push({
-      data: new Date().toLocaleDateString("pt-BR"),
-      pdf,
-      nome,
+
+    setArquivos((prevArquivos) => {
+      const novos = { ...(prevArquivos || {}) };
+
+      if (!novos[key]) {
+        novos[key] = { orcamentos: [], relatorios: [] };
+      }
+
+      if (!Array.isArray(novos[key][tipo])) {
+        novos[key][tipo] = [];
+      }
+
+      novos[key][tipo].push({
+        data: new Date().toLocaleDateString("pt-BR"),
+        pdf,
+        nome,
+      });
+
+      localStorage.setItem("arquivos", JSON.stringify(novos));
+      return novos;
     });
-    setArquivos(novos);
-    localStorage.setItem("arquivos", JSON.stringify(novos));
   };
 
   // Função para adicionar/remover serviços selecionados
@@ -1937,7 +1955,7 @@ function App() {
                   <CardContent className="space-y-4">
                     <div>
                       <h3 className="font-semibold">Orçamentos</h3>
-                      {dados.orcamentos.length ? (
+                      {dados.orcamentos?.length ? (
                         <ul className="list-disc pl-4">
                           {dados.orcamentos.map((o, i) => (
                             <li key={i}>
@@ -1960,7 +1978,7 @@ function App() {
                     </div>
                     <div>
                       <h3 className="font-semibold">Relatórios</h3>
-                      {dados.relatorios.length ? (
+                      {dados.relatorios?.length ? (
                         <ul className="list-disc pl-4">
                           {dados.relatorios.map((r, i) => (
                             <li key={i}>
