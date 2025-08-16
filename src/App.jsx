@@ -276,6 +276,12 @@ function App() {
   }
 
   // Função para gerar orçamento
+  const logo = await carregarLogo();
+const logoWidth = 40;
+const logoHeight = logoWidth * 1.5;
+const pageWidth = doc.internal.pageSize.getWidth();
+doc.addImage(logo, 'PNG', pageWidth - logoWidth - 10, 10, logoWidth, logoHeight);
+
   const gerarOrcamento = () => {
     if (!cliente.nome) {
       alert('Por favor, preencha o nome do cliente antes de gerar o orçamento.')
@@ -360,6 +366,12 @@ function App() {
   }
 
   // Função para gerar relatório
+  const logo = await carregarLogo();
+const logoWidth = 40;
+const logoHeight = logoWidth * 1.5;
+const pageWidth = doc.internal.pageSize.getWidth();
+doc.addImage(logo, 'PNG', pageWidth - logoWidth - 10, 10, logoWidth, logoHeight);
+
   const gerarRelatorio = () => {
     if (!cliente.nome) {
       alert('Por favor, preencha o nome do cliente antes de gerar o relatório.')
