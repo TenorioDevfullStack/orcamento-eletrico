@@ -134,6 +134,9 @@ function App() {
     if (!novos[key]) {
       novos[key] = { orcamentos: [], relatorios: [] };
     }
+    if (!novos[key][tipo]) {
+      novos[key][tipo] = [];
+    }
     novos[key][tipo].push({
       data: new Date().toLocaleDateString("pt-BR"),
       pdf,
