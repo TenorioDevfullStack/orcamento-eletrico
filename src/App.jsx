@@ -448,24 +448,24 @@ function App() {
   };
 
   // Calcula quanto cada serviço deve receber de acréscimo pelas despesas extras
-  const calcularAcrescimoPorUnidade = () => {
+  const calcularAcrescimoPorItem = () => {
     const totalDespesas = despesasExtras.reduce((acc, d) => acc + d.valor, 0);
-    const totalQuantidade = [
+    const totalItens = [
       ...servicosSelecionados,
       ...servicosManuais,
-    ].reduce((acc, s) => acc + (s.quantidade || 0), 0);
-    return totalQuantidade > 0 ? totalDespesas / totalQuantidade : 0;
+    ].length;
+    return totalItens > 0 ? totalDespesas / totalItens : 0;
   };
 
   // Calcular valor total com as despesas extras diluídas
   const calcularTotal = () => {
-    const acrescimo = calcularAcrescimoPorUnidade();
+    const acrescimo = calcularAcrescimoPorItem();
     const totalServicos = servicosSelecionados.reduce(
-      (acc, s) => acc + (s.preco_unitario + acrescimo) * s.quantidade,
+      (acc, s) => acc + s.preco_unitario * s.quantidade + acrescimo,
       0
     );
     const totalManuais = servicosManuais.reduce(
-      (acc, s) => acc + (s.preco_unitario + acrescimo) * s.quantidade,
+      (acc, s) => acc + s.preco_unitario * s.quantidade + acrescimo,
       0
     );
     return totalServicos + totalManuais;
@@ -492,14 +492,14 @@ function App() {
       );
       return;
     }
-    const acrescimo = calcularAcrescimoPorUnidade();
+    const acrescimo = calcularAcrescimoPorItem();
     const servicosSelecionadosAtualizados = servicosSelecionados.map((s) => ({
       ...s,
-      preco_unitario: s.preco_unitario + acrescimo,
+      preco_unitario: s.preco_unitario + acrescimo / (s.quantidade || 1),
     }));
     const servicosManuaisAtualizados = servicosManuais.map((s) => ({
       ...s,
-      preco_unitario: s.preco_unitario + acrescimo,
+      preco_unitario: s.preco_unitario + acrescimo / (s.quantidade || 1),
     }));
     const subtotal = calcularTotal();
     const valorTotal = subtotal * (1 - desconto / 100);
@@ -828,7 +828,7 @@ function App() {
     nome.toLowerCase().includes(buscaArquivo.toLowerCase())
   );
 
-  const acrescimo = calcularAcrescimoPorUnidade();
+  const acrescimo = calcularAcrescimoPorItem();
 
   return (
     <div className="min-h-screen bg-gray-50 p-4">
@@ -1375,7 +1375,9 @@ function App() {
                     </h3>
                     <div className="space-y-2">
                       {servicosSelecionados.map((servico) => {
-                        const precoFinal = servico.preco_unitario + acrescimo;
+                        const precoFinal =
+                          servico.preco_unitario +
+                          acrescimo / (servico.quantidade || 1);
                         return (
                           <div
                             key={servico.id}
@@ -1418,7 +1420,9 @@ function App() {
                     <h3 className="font-semibold mb-3">Serviços Adicionais:</h3>
                     <div className="space-y-2">
                       {servicosManuais.map((servico) => {
-                        const precoFinal = servico.preco_unitario + acrescimo;
+                        const precoFinal =
+                          servico.preco_unitario +
+                          acrescimo / (servico.quantidade || 1);
                         return (
                           <div
                             key={servico.id}
