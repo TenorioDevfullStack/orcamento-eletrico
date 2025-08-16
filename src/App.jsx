@@ -44,6 +44,8 @@ function App() {
   const [servicosRelatorioManuais, setServicosRelatorioManuais] = useState([])
   const [novoServicoRelatorioManual, setNovoServicoRelatorioManual] = useState({ nome: '', descricao: '', quantidade: '', unidade: 'un', foto: '' })
   const [desconto, setDesconto] = useState(0)
+  const [buscaServico, setBuscaServico] = useState('')
+  const [buscaServicoRelatorio, setBuscaServicoRelatorio] = useState('')
 
   const [arquivos, setArquivos] = useState(() => {
     const saved = localStorage.getItem('arquivos')
@@ -276,13 +278,7 @@ function App() {
   }
 
   // Função para gerar orçamento
-  const logo = await carregarLogo();
-const logoWidth = 40;
-const logoHeight = logoWidth * 1.5;
-const pageWidth = doc.internal.pageSize.getWidth();
-doc.addImage(logo, 'PNG', pageWidth - logoWidth - 10, 10, logoWidth, logoHeight);
-
-  const gerarOrcamento = () => {
+  const gerarOrcamento = async () => {
     if (!cliente.nome) {
       alert('Por favor, preencha o nome do cliente antes de gerar o orçamento.')
       return
@@ -304,6 +300,11 @@ doc.addImage(logo, 'PNG', pageWidth - logoWidth - 10, 10, logoWidth, logoHeight)
     console.log('Orçamento gerado:', orcamento)
 
     const doc = new jsPDF()
+    const logo = await carregarLogo()
+    const logoWidth = 40
+    const logoHeight = logoWidth * 1.5
+    const pageWidth = doc.internal.pageSize.getWidth()
+    doc.addImage(logo, 'PNG', pageWidth - logoWidth - 10, 10, logoWidth, logoHeight)
     doc.setFontSize(18)
     doc.text('Orçamento de Serviços Elétricos', 14, 20)
 
@@ -366,18 +367,17 @@ doc.addImage(logo, 'PNG', pageWidth - logoWidth - 10, 10, logoWidth, logoHeight)
   }
 
   // Função para gerar relatório
-  const logo = await carregarLogo();
-const logoWidth = 40;
-const logoHeight = logoWidth * 1.5;
-const pageWidth = doc.internal.pageSize.getWidth();
-doc.addImage(logo, 'PNG', pageWidth - logoWidth - 10, 10, logoWidth, logoHeight);
-
-  const gerarRelatorio = () => {
+  const gerarRelatorio = async () => {
     if (!cliente.nome) {
       alert('Por favor, preencha o nome do cliente antes de gerar o relatório.')
       return
     }
     const doc = new jsPDF()
+    const logo = await carregarLogo()
+    const logoWidth = 40
+    const logoHeight = logoWidth * 1.5
+    const pageWidth = doc.internal.pageSize.getWidth()
+    doc.addImage(logo, 'PNG', pageWidth - logoWidth - 10, 10, logoWidth, logoHeight)
     doc.setFontSize(18)
     doc.text('Relatório de Inspeção', 14, 20)
 
@@ -624,13 +624,25 @@ doc.addImage(logo, 'PNG', pageWidth - logoWidth - 10, 10, logoWidth, logoHeight)
                 <CardDescription>Selecione os serviços que serão executados</CardDescription>
               </CardHeader>
               <CardContent>
+                <Input
+                  placeholder="Buscar serviço..."
+                  value={buscaServico}
+                  onChange={(e) => setBuscaServico(e.target.value)}
+                  className="mb-4"
+                />
                 <Accordion type="multiple" className="w-full">
-                  {categories.map(categoria => (
-                    <AccordionItem key={categoria} value={categoria}>
-                      <AccordionTrigger className="text-lg font-semibold text-blue-600">{categoria}</AccordionTrigger>
-                      <AccordionContent>
-                        <div className="grid gap-3">
-                          {services.filter(s => s.categoria === categoria).map(servico => {
+                  {categories.map(categoria => {
+                    const servicosFiltrados = services.filter(s =>
+                      s.categoria === categoria &&
+                      s.nome.toLowerCase().includes(buscaServico.toLowerCase())
+                    )
+                    if (servicosFiltrados.length === 0) return null
+                    return (
+                      <AccordionItem key={categoria} value={categoria}>
+                        <AccordionTrigger className="text-lg font-semibold text-blue-600">{categoria}</AccordionTrigger>
+                        <AccordionContent>
+                          <div className="grid gap-3">
+                            {servicosFiltrados.map(servico => {
                             const selecionado = servicosSelecionados.find(s => s.id === servico.id)
                             return (
                               <div key={servico.id} className="border rounded-lg p-4">
@@ -697,10 +709,11 @@ doc.addImage(logo, 'PNG', pageWidth - logoWidth - 10, 10, logoWidth, logoHeight)
                               </div>
                             )
                           })}
-                        </div>
-                      </AccordionContent>
-                    </AccordionItem>
-                  ))}
+                          </div>
+                        </AccordionContent>
+                      </AccordionItem>
+                    )
+                  })}
                 </Accordion>
 
                 <div className="flex gap-2 mt-6">
@@ -1020,19 +1033,31 @@ doc.addImage(logo, 'PNG', pageWidth - logoWidth - 10, 10, logoWidth, logoHeight)
                 <CardDescription>Selecione os serviços recomendados</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
+                <Input
+                  placeholder="Buscar serviço..."
+                  value={buscaServicoRelatorio}
+                  onChange={(e) => setBuscaServicoRelatorio(e.target.value)}
+                  className="mb-4"
+                />
                 <Accordion type="multiple" className="w-full">
-                  {categories.map(categoria => (
-                    <AccordionItem key={categoria} value={categoria}>
-                      <AccordionTrigger className="font-semibold">{categoria}</AccordionTrigger>
-                      <AccordionContent>
-                        <div className="grid gap-4">
-                          {services.filter(s => s.categoria === categoria).map(servico => {
-                            const selecionado = servicosRelatorioSelecionados.find(s => s.id === servico.id)
-                            const isLaudo = servico.categoria === 'Laudos'
-                            const isCabo = servico.categoria === 'Passagem de Cabos e Eletrodutos'
-                            const label = isLaudo ? 'Metros²' : isCabo ? 'Metros' : 'Quantidade'
-                            return (
-                              <div key={servico.id} className="border rounded-lg p-4">
+                  {categories.map(categoria => {
+                    const servicosFiltrados = services.filter(s =>
+                      s.categoria === categoria &&
+                      s.nome.toLowerCase().includes(buscaServicoRelatorio.toLowerCase())
+                    )
+                    if (servicosFiltrados.length === 0) return null
+                    return (
+                      <AccordionItem key={categoria} value={categoria}>
+                        <AccordionTrigger className="font-semibold">{categoria}</AccordionTrigger>
+                        <AccordionContent>
+                          <div className="grid gap-4">
+                            {servicosFiltrados.map(servico => {
+                              const selecionado = servicosRelatorioSelecionados.find(s => s.id === servico.id)
+                              const isLaudo = servico.categoria === 'Laudos'
+                              const isCabo = servico.categoria === 'Passagem de Cabos e Eletrodutos'
+                              const label = isLaudo ? 'Metros²' : isCabo ? 'Metros' : 'Quantidade'
+                              return (
+                                <div key={servico.id} className="border rounded-lg p-4">
                                 <div className="flex items-center gap-2">
                                   <Checkbox
                                     checked={!!selecionado}
@@ -1086,7 +1111,8 @@ doc.addImage(logo, 'PNG', pageWidth - logoWidth - 10, 10, logoWidth, logoHeight)
                         </div>
                       </AccordionContent>
                     </AccordionItem>
-                  ))}
+                    )
+                  })}
                 </Accordion>
 
                 <div className="space-y-4">
