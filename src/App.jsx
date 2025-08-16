@@ -130,17 +130,27 @@ function App() {
 
   const salvarArquivo = (clienteNome, tipo, pdf, nome) => {
     const key = clienteNome || "Sem nome";
-    const novos = { ...arquivos };
-    if (!novos[key]) {
-      novos[key] = { orcamentos: [], relatorios: [] };
-    }
-    novos[key][tipo].push({
-      data: new Date().toLocaleDateString("pt-BR"),
-      pdf,
-      nome,
+
+    setArquivos((prevArquivos) => {
+      const novos = { ...(prevArquivos || {}) };
+
+      if (!novos[key]) {
+        novos[key] = { orcamentos: [], relatorios: [] };
+      }
+
+      if (!Array.isArray(novos[key][tipo])) {
+        novos[key][tipo] = [];
+      }
+
+      novos[key][tipo].push({
+        data: new Date().toLocaleDateString("pt-BR"),
+        pdf,
+        nome,
+      });
+
+      localStorage.setItem("arquivos", JSON.stringify(novos));
+      return novos;
     });
-    setArquivos(novos);
-    localStorage.setItem("arquivos", JSON.stringify(novos));
   };
 
   // Função para adicionar/remover serviços selecionados
