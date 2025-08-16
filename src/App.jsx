@@ -16,6 +16,16 @@ import { services, categories } from './data/services.js'
 import { problemasEletricos, outrosProblemas } from './data/problems.js'
 import './App.css'
 
+const carregarLogo = async () => {
+  const response = await fetch('/logo.png');
+  const blob = await response.blob();
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result);
+    reader.readAsDataURL(blob);
+  });
+};
+
 function App() {
   // Estados principais
   const [currentTab, setCurrentTab] = useState('cliente')
