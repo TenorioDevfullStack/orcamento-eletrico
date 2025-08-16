@@ -447,18 +447,28 @@ function App() {
     );
   };
 
-  // Calcular valor total
+  // Calcula quanto cada serviço deve receber de acréscimo pelas despesas extras
+  const calcularAcrescimoPorUnidade = () => {
+    const totalDespesas = despesasExtras.reduce((acc, d) => acc + d.valor, 0);
+    const totalQuantidade = [
+      ...servicosSelecionados,
+      ...servicosManuais,
+    ].reduce((acc, s) => acc + (s.quantidade || 0), 0);
+    return totalQuantidade > 0 ? totalDespesas / totalQuantidade : 0;
+  };
+
+  // Calcular valor total com as despesas extras diluídas
   const calcularTotal = () => {
+    const acrescimo = calcularAcrescimoPorUnidade();
     const totalServicos = servicosSelecionados.reduce(
-      (acc, s) => acc + s.preco_unitario * s.quantidade,
+      (acc, s) => acc + (s.preco_unitario + acrescimo) * s.quantidade,
       0
     );
     const totalManuais = servicosManuais.reduce(
-      (acc, s) => acc + s.preco_unitario * s.quantidade,
+      (acc, s) => acc + (s.preco_unitario + acrescimo) * s.quantidade,
       0
     );
-    const totalDespesas = despesasExtras.reduce((acc, d) => acc + d.valor, 0);
-    return totalServicos + totalManuais + totalDespesas;
+    return totalServicos + totalManuais;
   };
 
   // Função auxiliar para adicionar a logo em todas as páginas do PDF
@@ -482,13 +492,21 @@ function App() {
       );
       return;
     }
+    const acrescimo = calcularAcrescimoPorUnidade();
+    const servicosSelecionadosAtualizados = servicosSelecionados.map((s) => ({
+      ...s,
+      preco_unitario: s.preco_unitario + acrescimo,
+    }));
+    const servicosManuaisAtualizados = servicosManuais.map((s) => ({
+      ...s,
+      preco_unitario: s.preco_unitario + acrescimo,
+    }));
     const subtotal = calcularTotal();
     const valorTotal = subtotal * (1 - desconto / 100);
     const orcamento = {
       cliente,
-      servicosSelecionados,
-      servicosManuais,
-      despesasExtras,
+      servicosSelecionados: servicosSelecionadosAtualizados,
+      servicosManuais: servicosManuaisAtualizados,
       observacoesGerais,
       desconto,
       subtotal,
@@ -515,27 +533,17 @@ function App() {
     autoTable(doc, {
       startY: 60,
       head: [["Serviço", "Qtd", "Descrição", "Valor"]],
-      body: orcamento.servicosSelecionados.map((s) => [
-        s.nome,
-        s.quantidade,
-        s.descricao || "",
-        `R$ ${(s.preco_unitario * s.quantidade).toFixed(2)}`,
-      ]),
+      body: [...orcamento.servicosSelecionados, ...orcamento.servicosManuais].map(
+        (s) => [
+          s.nome,
+          s.quantidade,
+          s.descricao || "",
+          `R$ ${(s.preco_unitario * s.quantidade).toFixed(2)}`,
+        ]
+      ),
     });
 
     let finalY = doc.lastAutoTable ? doc.lastAutoTable.finalY : 60;
-
-    if (orcamento.despesasExtras.length > 0) {
-      autoTable(doc, {
-        startY: finalY + 10,
-        head: [["Despesa", "Valor"]],
-        body: orcamento.despesasExtras.map((d) => [
-          d.descricao,
-          `R$ ${d.valor.toFixed(2)}`,
-        ]),
-      });
-      finalY = doc.lastAutoTable.finalY;
-    }
 
     if (orcamento.observacoesGerais) {
       doc.text(`Observações: ${orcamento.observacoesGerais}`, 14, finalY + 10);
@@ -819,6 +827,8 @@ function App() {
   const arquivosFiltrados = Object.entries(arquivos).filter(([nome]) =>
     nome.toLowerCase().includes(buscaArquivo.toLowerCase())
   );
+
+  const acrescimo = calcularAcrescimoPorUnidade();
 
   return (
     <div className="min-h-screen bg-gray-50 p-4">
@@ -1364,41 +1374,40 @@ function App() {
                       Serviços Selecionados:
                     </h3>
                     <div className="space-y-2">
-                      {servicosSelecionados.map((servico) => (
-                        <div
-                          key={servico.id}
-                          className="flex justify-between items-start p-3 border rounded"
-                        >
-                          <div className="flex-1">
-                            <p className="font-medium">{servico.nome}</p>
-                            <p className="text-sm text-gray-600">
-                              {servico.descricao}
-                            </p>
-                            {servico.observacoes && (
-                              <p className="text-sm text-blue-600 mt-1">
-                                Obs: {servico.observacoes}
+                      {servicosSelecionados.map((servico) => {
+                        const precoFinal = servico.preco_unitario + acrescimo;
+                        return (
+                          <div
+                            key={servico.id}
+                            className="flex justify-between items-start p-3 border rounded"
+                          >
+                            <div className="flex-1">
+                              <p className="font-medium">{servico.nome}</p>
+                              <p className="text-sm text-gray-600">
+                                {servico.descricao}
                               </p>
-                            )}
+                              {servico.observacoes && (
+                                <p className="text-sm text-blue-600 mt-1">
+                                  Obs: {servico.observacoes}
+                                </p>
+                              )}
+                            </div>
+                            <Badge>
+                              {servico.categoria === "Laudos"
+                                ? `${
+                                    servico.quantidade
+                                  } m² x R$ ${precoFinal.toFixed(2)} = R$ ${(
+                                    precoFinal * servico.quantidade
+                                  ).toFixed(2)}`
+                                : `${
+                                    servico.quantidade
+                                  }x R$ ${precoFinal.toFixed(2)} = R$ ${(
+                                    precoFinal * servico.quantidade
+                                  ).toFixed(2)}`}
+                            </Badge>
                           </div>
-                          <Badge>
-                            {servico.categoria === "Laudos"
-                              ? `${
-                                  servico.quantidade
-                                } m² x R$ ${servico.preco_unitario.toFixed(
-                                  2
-                                )} = R$ ${(
-                                  servico.preco_unitario * servico.quantidade
-                                ).toFixed(2)}`
-                              : `${
-                                  servico.quantidade
-                                }x R$ ${servico.preco_unitario.toFixed(
-                                  2
-                                )} = R$ ${(
-                                  servico.preco_unitario * servico.quantidade
-                                ).toFixed(2)}`}
-                          </Badge>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 )}
@@ -1408,44 +1417,29 @@ function App() {
                   <div>
                     <h3 className="font-semibold mb-3">Serviços Adicionais:</h3>
                     <div className="space-y-2">
-                      {servicosManuais.map((servico) => (
-                        <div
-                          key={servico.id}
-                          className="flex justify-between items-start p-3 border rounded"
-                        >
-                          <div>
-                            <p className="font-medium">{servico.nome}</p>
-                            {servico.descricao && (
-                              <p className="text-sm text-gray-600">
-                                {servico.descricao}
-                              </p>
-                            )}
+                      {servicosManuais.map((servico) => {
+                        const precoFinal = servico.preco_unitario + acrescimo;
+                        return (
+                          <div
+                            key={servico.id}
+                            className="flex justify-between items-start p-3 border rounded"
+                          >
+                            <div>
+                              <p className="font-medium">{servico.nome}</p>
+                              {servico.descricao && (
+                                <p className="text-sm text-gray-600">
+                                  {servico.descricao}
+                                </p>
+                              )}
+                            </div>
+                            <Badge>{`${
+                              servico.quantidade
+                            } x R$ ${precoFinal.toFixed(2)} = R$ ${(
+                              servico.quantidade * precoFinal
+                            ).toFixed(2)}`}</Badge>
                           </div>
-                          <Badge>{`${
-                            servico.quantidade
-                          } x R$ ${servico.preco_unitario.toFixed(2)} = R$ ${(
-                            servico.quantidade * servico.preco_unitario
-                          ).toFixed(2)}`}</Badge>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Despesas Extras */}
-                {despesasExtras.length > 0 && (
-                  <div>
-                    <h3 className="font-semibold mb-3">Despesas Extras:</h3>
-                    <div className="space-y-2">
-                      {despesasExtras.map((despesa) => (
-                        <div
-                          key={despesa.id}
-                          className="flex justify-between items-center p-3 border rounded"
-                        >
-                          <span>{despesa.descricao}</span>
-                          <Badge>R$ {despesa.valor.toFixed(2)}</Badge>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 )}
