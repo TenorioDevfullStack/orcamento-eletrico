@@ -131,25 +131,6 @@ function App() {
   const salvarArquivo = (clienteNome, tipo, pdf, nome) => {
     const key = clienteNome || "Sem nome";
 
-    setArquivos((prevArquivos) => {
-      const novos = { ...(prevArquivos || {}) };
-
-      if (!novos[key]) {
-        novos[key] = { orcamentos: [], relatorios: [] };
-      }
-
-      if (!Array.isArray(novos[key][tipo])) {
-        novos[key][tipo] = [];
-      }
-
-      novos[key][tipo].push({
-        data: new Date().toLocaleDateString("pt-BR"),
-        pdf,
-        nome,
-      });
-
-      localStorage.setItem("arquivos", JSON.stringify(novos));
-      return novos;
     });
   };
 
