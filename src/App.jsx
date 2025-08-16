@@ -139,6 +139,7 @@ function App() {
   const salvarArquivo = (clienteNome, tipo, pdf, nome) => {
     const key = clienteNome || "Sem nome";
 
+
     setArquivos((prevArquivos) => {
       const novos = { ...(prevArquivos || {}) };
 
@@ -186,6 +187,7 @@ function App() {
         }
       }
       return novos;
+
     });
   };
 
