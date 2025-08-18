@@ -1,0 +1,16 @@
+.electric-background {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.4;
+  background: linear-gradient(135deg, #001b2e, #003d66, #001b2e);
+  background-size: 400% 400%;
+  animation: electric-background-move 8s ease-in-out infinite;
+}
+
+@keyframes electric-background-move {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
