@@ -41,6 +41,7 @@ import { services, categories } from "./data/services.js";
 const logoRaizEletrica = "/logo-raizeletrica-atualizada-sem-fundo.png";
 import { problemasEletricos, outrosProblemas } from "./data/problems.js";
 import "./App.css";
+import ElectricBackground from "@/components/electric-background.jsx";
 
 function App() {
   // Utilitário para carregar imagem como base64
@@ -831,8 +832,9 @@ function App() {
   const acrescimo = calcularAcrescimoPorItem();
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
-      <div className="max-w-4xl mx-auto">
+    <div className="relative min-h-screen bg-gray-50 p-4 overflow-hidden">
+      <ElectricBackground />
+      <div className="relative z-10 max-w-4xl mx-auto">
         <div className="text-center mb-8">
           <div className="flex flex-col items-center justify-center gap-2 mb-4">
             <img
@@ -2081,17 +2083,3 @@ function App() {
 }
 
 export default App;
-
-// Registrar Service Worker para PWA
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker
-      .register("/sw.js")
-      .then((registration) => {
-        console.log("SW registered: ", registration);
-      })
-      .catch((registrationError) => {
-        console.log("SW registration failed: ", registrationError);
-      });
-  });
-}
