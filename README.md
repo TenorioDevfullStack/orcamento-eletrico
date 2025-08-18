@@ -24,6 +24,7 @@ Sistema Progressive Web App (PWA) para geração de orçamentos de serviços el�
 - Campo de observações específicas para cada serviço
 - Adição de serviços manuais não listados
 - Inclusão de despesas extras (combustível, deslocamento, etc.)
+- Rateio automático das despesas extras por item de serviço
 - Observações gerais do orçamento
 
 ### 📊 Geração de Orçamentos
@@ -31,6 +32,8 @@ Sistema Progressive Web App (PWA) para geração de orçamentos de serviços el�
 - Visualização completa antes da finalização
 - Resumo organizado por categorias
 - Data de criação automática
+- Geração separada de PDFs para mão de obra e materiais
+- Anexo de fotos e arquivos nas observações gerais
 - Interface para impressão/compartilhamento
 
 ### 📱 Recursos PWA
@@ -85,15 +88,15 @@ pnpm run dev
 
 #### Passo 3: Serviços Extras
 - **Serviços Adicionais**: Adicione serviços não listados
-- **Despesas Extras**: Inclua combustível, deslocamento, etc.
-- **Observações Gerais**: Adicione informações importantes
+- **Despesas Extras**: Inclua combustível, deslocamento, etc. (valor rateado automaticamente pelos serviços)
+- **Observações Gerais**: Adicione informações importantes e anexe fotos ou arquivos
 - Clique em "Finalizar: Ver Orçamento"
 
 #### Passo 4: Orçamento Final
 - Revise todos os itens e valores
 - Caso necessário, informe uma porcentagem de desconto
 - Visualize o total calculado automaticamente
-- Clique em "Gerar Orçamento" para finalizar
+- Clique em "Gerar Orçamentos" para finalizar (geração de PDFs separados para serviços e materiais)
 - Use "Novo Orçamento" para começar outro
 
 ### 3. Instalação como PWA

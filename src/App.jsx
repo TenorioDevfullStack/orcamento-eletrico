@@ -110,6 +110,12 @@ function App() {
     quantidade: "",
     preco_unitario: "",
   });
+  const [despesasExtras, setDespesasExtras] = useState([]);
+  const [novaDespesa, setNovaDespesa] = useState({
+    descricao: "",
+    valor: "",
+  });
+  const [arquivosObservacoes, setArquivosObservacoes] = useState([]);
   const [problemasEletricosSelecionados, setProblemasEletricosSelecionados] =
     useState([]);
   const [outrosProblemasSelecionados, setOutrosProblemasSelecionados] =
@@ -211,6 +217,48 @@ function App() {
       localStorage.setItem("arquivos", JSON.stringify(novos));
       return novos;
     });
+  };
+
+  const adicionarDespesaExtra = () => {
+    if (!novaDespesa.descricao || !novaDespesa.valor) return;
+    setDespesasExtras([
+      ...despesasExtras,
+      { ...novaDespesa, id: Date.now(), valor: parseFloat(novaDespesa.valor) },
+    ]);
+    setNovaDespesa({ descricao: "", valor: "" });
+  };
+
+  const removerDespesaExtra = (id) => {
+    setDespesasExtras(despesasExtras.filter((d) => d.id !== id));
+  };
+
+  const calcularAcrescimoPorItem = () => {
+    const totalExtras = despesasExtras.reduce((acc, d) => acc + d.valor, 0);
+    const quantidadeTotal = [...servicosSelecionados, ...servicosManuais].reduce(
+      (acc, s) => acc + (parseFloat(s.quantidade) || 0),
+      0
+    );
+    return quantidadeTotal > 0 ? totalExtras / quantidadeTotal : 0;
+  };
+
+  const handleUploadObservacoes = (e) => {
+    const files = Array.from(e.target.files || []);
+    files.forEach((file) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setArquivosObservacoes((prev) => [
+          ...prev,
+          {
+            id: Date.now() + Math.random(),
+            nome: file.name,
+            tipo: file.type,
+            base64: reader.result,
+          },
+        ]);
+      };
+      reader.readAsDataURL(file);
+    });
+    e.target.value = "";
   };
 
   // Função para adicionar/remover serviços selecionados
@@ -462,7 +510,8 @@ function App() {
       (acc, s) => acc + s.preco_unitario * s.quantidade,
       0
     );
-    return totalServicos + totalManuais;
+    const totalExtras = despesasExtras.reduce((acc, d) => acc + d.valor, 0);
+    return totalServicos + totalManuais + totalExtras;
   };
 
   const calcularSubtotalMateriais = () => {
@@ -501,6 +550,7 @@ function App() {
     const subtotalMateriais = calcularSubtotalMateriais();
     const subtotal = subtotalMaoDeObra + subtotalMateriais;
     const valorTotal = subtotal * (1 - desconto / 100);
+    const acrescimo = calcularAcrescimoPorItem();
     const orcamento = {
       cliente,
       servicosSelecionados,
@@ -512,26 +562,27 @@ function App() {
       subtotalMateriais,
       subtotal,
       valorTotal,
+      despesasExtras,
+      acrescimo,
       dataCriacao: new Date().toLocaleDateString("pt-BR"),
+      arquivosObservacoes,
     };
 
     console.log("Orçamento gerado:", orcamento);
 
-    const doc = new jsPDF();
-
-    // Adiciona o conteúdo principal primeiro
-    doc.setFontSize(18);
-    doc.text("Orçamento de Serviços Elétricos", 14, 20);
-    doc.setFontSize(12);
-    doc.text(`Cliente: ${orcamento.cliente.nome}`, 14, 30);
-    doc.text(`Contato: ${orcamento.cliente.contato}`, 14, 37);
+    // Documento de serviços (mão de obra)
+    const docServicos = new jsPDF();
+    docServicos.setFontSize(18);
+    docServicos.text("Orçamento de Serviços Elétricos - Mão de Obra", 14, 20);
+    docServicos.setFontSize(12);
+    docServicos.text(`Cliente: ${orcamento.cliente.nome}`, 14, 30);
+    docServicos.text(`Contato: ${orcamento.cliente.contato}`, 14, 37);
     if (orcamento.cliente.endereco) {
-      doc.text(`Endereço: ${orcamento.cliente.endereco}`, 14, 44);
+      docServicos.text(`Endereço: ${orcamento.cliente.endereco}`, 14, 44);
     }
-    doc.text(`Data: ${orcamento.dataCriacao}`, 14, 51);
+    docServicos.text(`Data: ${orcamento.dataCriacao}`, 14, 51);
 
-    // Adiciona a tabela de serviços (mão de obra)
-    autoTable(doc, {
+    autoTable(docServicos, {
       startY: 60,
       head: [["Serviço", "Qtd", "Descrição", "Valor"]],
       body: [...orcamento.servicosSelecionados, ...orcamento.servicosManuais].map(
@@ -539,66 +590,202 @@ function App() {
           s.nome,
           s.quantidade,
           s.descricao || "",
-          `R$ ${(s.preco_unitario * s.quantidade).toFixed(2)}`,
+          `R$ ${((s.preco_unitario + acrescimo) * s.quantidade).toFixed(2)}`,
         ]
       ),
     });
 
-    let finalY = doc.lastAutoTable ? doc.lastAutoTable.finalY : 60;
-    doc.text(
-      `Subtotal Mão de Obra: R$ ${orcamento.subtotalMaoDeObra.toFixed(2)}`,
-      14,
-      finalY + 10
-    );
-    finalY += 16;
-
-    if (orcamento.materiais.length > 0) {
-      autoTable(doc, {
-        startY: finalY,
-        head: [["Material", "Qtd", "Valor"]],
-        body: orcamento.materiais.map((m) => [
-          m.descricao,
-          m.quantidade,
-          `R$ ${(m.preco_unitario * m.quantidade).toFixed(2)}`,
-        ]),
-      });
-      finalY = doc.lastAutoTable ? doc.lastAutoTable.finalY : finalY;
-      doc.text(
-        `Subtotal Materiais: R$ ${orcamento.subtotalMateriais.toFixed(2)}`,
+    let finalY = docServicos.lastAutoTable ? docServicos.lastAutoTable.finalY : 60;
+    if (despesasExtras.length > 0) {
+      docServicos.text(
+        `Total Despesas Extras: R$ ${despesasExtras
+          .reduce((acc, d) => acc + d.valor, 0)
+          .toFixed(2)}`,
         14,
         finalY + 10
       );
       finalY += 16;
     }
+    docServicos.text(
+      `Subtotal Mão de Obra: R$ ${subtotalMaoDeObra.toFixed(2)}`,
+      14,
+      finalY + 10
+    );
+    finalY += 16;
 
-    if (orcamento.observacoesGerais) {
-      doc.text(`Observações: ${orcamento.observacoesGerais}`, 14, finalY + 10);
+    if (observacoesGerais) {
+      docServicos.text(`Observações: ${observacoesGerais}`, 14, finalY + 10);
       finalY += 16;
     }
 
-    doc.setFontSize(14);
+    if (arquivosObservacoes.length > 0) {
+      let y = finalY + 10;
+      arquivosObservacoes.forEach((arq) => {
+        if (arq.tipo.startsWith("image/")) {
+          try {
+            const props = docServicos.getImageProperties(arq.base64);
+            const w = 180;
+            const h = (props.height * w) / props.width;
+            if (y + h > 280) {
+              docServicos.addPage();
+              y = 20;
+            }
+            docServicos.addImage(
+              arq.base64,
+              arq.tipo.includes("png") ? "PNG" : "JPEG",
+              14,
+              y,
+              w,
+              h
+            );
+            y += h + 4;
+          } catch (e) {
+            console.error("Erro ao adicionar imagem de observação:", e);
+          }
+        } else {
+          if (y + 6 > 280) {
+            docServicos.addPage();
+            y = 20;
+          }
+          docServicos.text(arq.nome, 14, y);
+          y += 6;
+        }
+      });
+      finalY = y;
+    }
+
+    docServicos.setFontSize(14);
+    const totalMaoDeObraComDesconto = subtotalMaoDeObra * (1 - desconto / 100);
     if (desconto > 0) {
-      doc.text(`Subtotal: R$ ${subtotal.toFixed(2)}`, 14, finalY + 20);
-      doc.text(
-        `Desconto (${desconto}%): -R$ ${(subtotal - valorTotal).toFixed(2)}`,
+      docServicos.text(
+        `Subtotal: R$ ${subtotalMaoDeObra.toFixed(2)}`,
+        14,
+        finalY + 20
+      );
+      docServicos.text(
+        `Desconto (${desconto}%): -R$ ${(subtotalMaoDeObra - totalMaoDeObraComDesconto).toFixed(2)}`,
         14,
         finalY + 27
       );
-      doc.text(`Total: R$ ${valorTotal.toFixed(2)}`, 14, finalY + 34);
+      docServicos.text(
+        `Total: R$ ${totalMaoDeObraComDesconto.toFixed(2)}`,
+        14,
+        finalY + 34
+      );
     } else {
-      doc.text(`Total: R$ ${valorTotal.toFixed(2)}`, 14, finalY + 20);
+      docServicos.text(
+        `Total: R$ ${subtotalMaoDeObra.toFixed(2)}`,
+        14,
+        finalY + 20
+      );
     }
 
-    const pdf = doc.output("datauristring");
+    const pdfServicos = docServicos.output("datauristring");
     salvarArquivo(
       orcamento.cliente.nome,
       "orcamentos",
-      pdf,
-      `orcamento-${orcamento.cliente.nome || "cliente"}.pdf`
+      pdfServicos,
+      `orcamento-servicos-${orcamento.cliente.nome || "cliente"}.pdf`
     );
-    await adicionarLogoEmTodasAsPaginas(doc);
-    doc.save(`orcamento-${orcamento.cliente.nome || "cliente"}.pdf`);
-    alert("Orçamento gerado em PDF com sucesso!");
+    await adicionarLogoEmTodasAsPaginas(docServicos);
+    docServicos.save(
+      `orcamento-servicos-${orcamento.cliente.nome || "cliente"}.pdf`
+    );
+
+    // Documento de materiais
+    if (materiais.length > 0) {
+      const docMateriais = new jsPDF();
+      docMateriais.setFontSize(18);
+      docMateriais.text("Orçamento de Materiais", 14, 20);
+      docMateriais.setFontSize(12);
+      docMateriais.text(`Cliente: ${orcamento.cliente.nome}`, 14, 30);
+      docMateriais.text(`Contato: ${orcamento.cliente.contato}`, 14, 37);
+      if (orcamento.cliente.endereco) {
+        docMateriais.text(
+          `Endereço: ${orcamento.cliente.endereco}`,
+          14,
+          44
+        );
+      }
+      docMateriais.text(`Data: ${orcamento.dataCriacao}`, 14, 51);
+
+      autoTable(docMateriais, {
+        startY: 60,
+        head: [["Material", "Qtd", "Valor"]],
+        body: materiais.map((m) => [
+          m.descricao,
+          m.quantidade,
+          `R$ ${(m.preco_unitario * m.quantidade).toFixed(2)}`,
+        ]),
+      });
+      let finalYMat = docMateriais.lastAutoTable
+        ? docMateriais.lastAutoTable.finalY
+        : 60;
+      docMateriais.text(
+        `Subtotal Materiais: R$ ${subtotalMateriais.toFixed(2)}`,
+        14,
+        finalYMat + 10
+      );
+      finalYMat += 16;
+
+      if (observacoesGerais) {
+        docMateriais.text(
+          `Observações: ${observacoesGerais}`,
+          14,
+          finalYMat + 10
+        );
+        finalYMat += 16;
+      }
+
+      if (arquivosObservacoes.length > 0) {
+        let y = finalYMat + 10;
+        arquivosObservacoes.forEach((arq) => {
+          if (arq.tipo.startsWith("image/")) {
+            try {
+              const props = docMateriais.getImageProperties(arq.base64);
+              const w = 180;
+              const h = (props.height * w) / props.width;
+              if (y + h > 280) {
+                docMateriais.addPage();
+                y = 20;
+              }
+              docMateriais.addImage(
+                arq.base64,
+                arq.tipo.includes("png") ? "PNG" : "JPEG",
+                14,
+                y,
+                w,
+                h
+              );
+              y += h + 4;
+            } catch (e) {
+              console.error("Erro ao adicionar imagem de observação:", e);
+            }
+          } else {
+            if (y + 6 > 280) {
+              docMateriais.addPage();
+              y = 20;
+            }
+            docMateriais.text(arq.nome, 14, y);
+            y += 6;
+          }
+        });
+      }
+
+      const pdfMateriais = docMateriais.output("datauristring");
+      salvarArquivo(
+        orcamento.cliente.nome,
+        "orcamentos",
+        pdfMateriais,
+        `orcamento-materiais-${orcamento.cliente.nome || "cliente"}.pdf`
+      );
+      await adicionarLogoEmTodasAsPaginas(docMateriais);
+      docMateriais.save(
+        `orcamento-materiais-${orcamento.cliente.nome || "cliente"}.pdf`
+      );
+    }
+
+    alert("Orçamentos gerados em PDF com sucesso!");
   };
 
   // Função para gerar relatório
@@ -834,6 +1021,9 @@ function App() {
     setMateriais([]);
     setNovoMaterial({ descricao: "", quantidade: "", preco_unitario: "" });
     setObservacoesGerais("");
+    setDespesasExtras([]);
+    setNovaDespesa({ descricao: "", valor: "" });
+    setArquivosObservacoes([]);
     setDesconto(0);
     setServicosRelatorioSelecionados([]);
     setServicosRelatorioManuais([]);
@@ -851,6 +1041,7 @@ function App() {
     setCurrentTab("cliente");
   };
 
+  const acrescimoPorItem = calcularAcrescimoPorItem();
   const arquivosFiltrados = Object.entries(arquivos).filter(([nome]) =>
     nome.toLowerCase().includes(buscaArquivo.toLowerCase())
   );
@@ -986,6 +1177,7 @@ function App() {
                 </Button>
               </CardContent>
             </Card>
+
           </TabsContent>
 
           {/* Aba Serviços */}
@@ -1258,12 +1450,85 @@ function App() {
                   </div>
                 )}
               </CardContent>
-            </Card>
+              </Card>
 
-            {/* Materiais */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Materiais</CardTitle>
+              {/* Despesas Extras */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Despesas Extras</CardTitle>
+                  <CardDescription>
+                    Custos adicionais como deslocamento e combustível
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <Label htmlFor="descricao-despesa">Descrição</Label>
+                      <Input
+                        id="descricao-despesa"
+                        value={novaDespesa.descricao}
+                        onChange={(e) =>
+                          setNovaDespesa({
+                            ...novaDespesa,
+                            descricao: e.target.value,
+                          })
+                        }
+                        placeholder="Ex: Deslocamento"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="valor-despesa">Valor</Label>
+                      <div className="flex gap-2">
+                        <Input
+                          id="valor-despesa"
+                          type="number"
+                          step="0.01"
+                          value={novaDespesa.valor}
+                          onChange={(e) =>
+                            setNovaDespesa({
+                              ...novaDespesa,
+                              valor: e.target.value,
+                            })
+                          }
+                          placeholder="0.00"
+                        />
+                        <Button onClick={adicionarDespesaExtra} size="sm">
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {despesasExtras.length > 0 && (
+                    <div className="space-y-2">
+                      <h4 className="font-medium">Despesas Adicionadas:</h4>
+                      {despesasExtras.map((d) => (
+                        <div
+                          key={d.id}
+                          className="flex justify-between items-center p-3 border rounded"
+                        >
+                          <span>{d.descricao}</span>
+                          <div className="flex items-center gap-2">
+                            <Badge>R$ {d.valor.toFixed(2)}</Badge>
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => removerDespesaExtra(d.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Materiais */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Materiais</CardTitle>
                 <CardDescription>
                   Adicione materiais necessários para o serviço
                 </CardDescription>
@@ -1363,6 +1628,36 @@ function App() {
                   placeholder="Observações gerais sobre o orçamento..."
                   rows={4}
                 />
+                <div className="mt-4 space-y-2">
+                  <Label htmlFor="arquivos-observacoes">Anexos</Label>
+                  <Input
+                    id="arquivos-observacoes"
+                    type="file"
+                    multiple
+                    onChange={handleUploadObservacoes}
+                  />
+                  {arquivosObservacoes.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {arquivosObservacoes.map((arq) =>
+                        arq.tipo.startsWith("image/") ? (
+                          <img
+                            key={arq.id}
+                            src={arq.base64}
+                            alt={arq.nome}
+                            className="w-20 h-20 object-cover rounded"
+                          />
+                        ) : (
+                          <span
+                            key={arq.id}
+                            className="text-sm text-blue-600 underline"
+                          >
+                            {arq.nome}
+                          </span>
+                        )
+                      )}
+                    </div>
+                  )}
+                </div>
               </CardContent>
             </Card>
 
@@ -1419,7 +1714,8 @@ function App() {
                     </h3>
                     <div className="space-y-2">
                       {servicosSelecionados.map((servico) => {
-                        const precoFinal = servico.preco_unitario;
+                        const precoFinal =
+                          servico.preco_unitario + acrescimoPorItem;
                         return (
                           <div
                             key={servico.id}
@@ -1462,7 +1758,8 @@ function App() {
                     <h3 className="font-semibold mb-3">Serviços Adicionais:</h3>
                     <div className="space-y-2">
                       {servicosManuais.map((servico) => {
-                        const precoFinal = servico.preco_unitario;
+                        const precoFinal =
+                          servico.preco_unitario + acrescimoPorItem;
                         return (
                           <div
                             key={servico.id}
@@ -1508,6 +1805,24 @@ function App() {
                   </div>
                 )}
 
+                {/* Despesas Extras */}
+                {despesasExtras.length > 0 && (
+                  <div>
+                    <h3 className="font-semibold mb-3">Despesas Extras:</h3>
+                    <div className="space-y-2">
+                      {despesasExtras.map((d) => (
+                        <div
+                          key={d.id}
+                          className="flex justify-between items-center p-3 border rounded"
+                        >
+                          <span>{d.descricao}</span>
+                          <Badge>R$ {d.valor.toFixed(2)}</Badge>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* Observações Gerais */}
                 {observacoesGerais && (
                   <div>
@@ -1515,6 +1830,33 @@ function App() {
                     <p className="text-gray-700 p-3 border rounded bg-gray-50">
                       {observacoesGerais}
                     </p>
+                  </div>
+                )}
+
+                {arquivosObservacoes.length > 0 && (
+                  <div>
+                    <h3 className="font-semibold mb-2">Anexos:</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {arquivosObservacoes.map((arq) =>
+                        arq.tipo.startsWith("image/") ? (
+                          <img
+                            key={arq.id}
+                            src={arq.base64}
+                            alt={arq.nome}
+                            className="w-24 h-24 object-cover rounded"
+                          />
+                        ) : (
+                          <a
+                            key={arq.id}
+                            href={arq.base64}
+                            download={arq.nome}
+                            className="text-blue-600 underline text-sm"
+                          >
+                            {arq.nome}
+                          </a>
+                        )
+                      )}
+                    </div>
                   </div>
                 )}
 
@@ -1567,7 +1909,7 @@ function App() {
                     disabled={!cliente.nome}
                   >
                     <FileText className="h-4 w-4 mr-2" />
-                    Gerar Orçamento
+                    Gerar Orçamentos
                   </Button>
                   <Button variant="outline" onClick={limparFormulario}>
                     Novo Orçamento
