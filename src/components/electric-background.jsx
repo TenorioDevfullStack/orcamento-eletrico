@@ -81,11 +81,9 @@ function ElectricBackground() {
   return (
     <canvas
       ref={canvasRef}
-      className="absolute inset-0 pointer-events-none"
+      className="absolute inset-0 -z-10 pointer-events-none"
     />
   );
-
-  return <canvas ref={canvasRef} className="absolute inset-0 -z-10" />;
 
 }
 

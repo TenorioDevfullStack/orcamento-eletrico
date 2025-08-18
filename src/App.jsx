@@ -832,13 +832,12 @@ function App() {
   const acrescimo = calcularAcrescimoPorItem();
 
   return (
-    <div className="relative min-h-screen bg-gray-50 p-4 overflow-hidden">
+    <div className="relative min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 p-4 overflow-hidden">
       <ElectricBackground />
 
       <div className="relative z-10 max-w-4xl mx-auto">
 
       <div className="max-w-4xl mx-auto">
- main
         <div className="text-center mb-8">
           <div className="flex flex-col items-center justify-center gap-2 mb-4">
             <img
@@ -2082,6 +2081,7 @@ function App() {
           </TabsContent>
         </Tabs>
       </div>
+    </div>
     </div>
   );
 }
