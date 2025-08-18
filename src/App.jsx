@@ -97,7 +97,7 @@ function App() {
   });
   const [servicosSelecionados, setServicosSelecionados] = useState([]);
   const [servicosManuais, setServicosManuais] = useState([]);
-  const [despesasExtras, setDespesasExtras] = useState([]);
+  const [materiais, setMateriais] = useState([]);
   const [observacoesGerais, setObservacoesGerais] = useState("");
   const [novoServicoManual, setNovoServicoManual] = useState({
     nome: "",
@@ -105,7 +105,11 @@ function App() {
     quantidade: "",
     preco_unitario: "",
   });
-  const [novaDespesa, setNovaDespesa] = useState({ descricao: "", valor: "" });
+  const [novoMaterial, setNovoMaterial] = useState({
+    descricao: "",
+    quantidade: "",
+    preco_unitario: "",
+  });
   const [problemasEletricosSelecionados, setProblemasEletricosSelecionados] =
     useState([]);
   const [outrosProblemasSelecionados, setOutrosProblemasSelecionados] =
@@ -285,24 +289,25 @@ function App() {
     setServicosManuais(servicosManuais.filter((s) => s.id !== id));
   };
 
-  // Função para adicionar despesa extra
-  const adicionarDespesaExtra = () => {
-    if (novaDespesa.descricao && novaDespesa.valor) {
-      setDespesasExtras([
-        ...despesasExtras,
+  // Função para adicionar material
+  const adicionarMaterial = () => {
+    if (novoMaterial.descricao && novoMaterial.quantidade && novoMaterial.preco_unitario) {
+      setMateriais([
+        ...materiais,
         {
           id: Date.now().toString(),
-          ...novaDespesa,
-          valor: parseFloat(novaDespesa.valor) || 0,
+          descricao: novoMaterial.descricao,
+          quantidade: parseFloat(novoMaterial.quantidade) || 0,
+          preco_unitario: parseFloat(novoMaterial.preco_unitario) || 0,
         },
       ]);
-      setNovaDespesa({ descricao: "", valor: "" });
+      setNovoMaterial({ descricao: "", quantidade: "", preco_unitario: "" });
     }
   };
 
-  // Função para remover despesa extra
-  const removerDespesaExtra = (id) => {
-    setDespesasExtras(despesasExtras.filter((d) => d.id !== id));
+  // Função para remover material
+  const removerMaterial = (id) => {
+    setMateriais(materiais.filter((m) => m.id !== id));
   };
 
   // Funções para serviços do relatório
@@ -448,28 +453,27 @@ function App() {
     );
   };
 
-  // Calcula quanto cada serviço deve receber de acréscimo pelas despesas extras
-  const calcularAcrescimoPorItem = () => {
-    const totalDespesas = despesasExtras.reduce((acc, d) => acc + d.valor, 0);
-    const totalItens = [
-      ...servicosSelecionados,
-      ...servicosManuais,
-    ].length;
-    return totalItens > 0 ? totalDespesas / totalItens : 0;
-  };
-
-  // Calcular valor total com as despesas extras diluídas
-  const calcularTotal = () => {
-    const acrescimo = calcularAcrescimoPorItem();
+  const calcularSubtotalMaoDeObra = () => {
     const totalServicos = servicosSelecionados.reduce(
-      (acc, s) => acc + s.preco_unitario * s.quantidade + acrescimo,
+      (acc, s) => acc + s.preco_unitario * s.quantidade,
       0
     );
     const totalManuais = servicosManuais.reduce(
-      (acc, s) => acc + s.preco_unitario * s.quantidade + acrescimo,
+      (acc, s) => acc + s.preco_unitario * s.quantidade,
       0
     );
     return totalServicos + totalManuais;
+  };
+
+  const calcularSubtotalMateriais = () => {
+    return materiais.reduce(
+      (acc, m) => acc + m.preco_unitario * m.quantidade,
+      0
+    );
+  };
+
+  const calcularTotal = () => {
+    return calcularSubtotalMaoDeObra() + calcularSubtotalMateriais();
   };
 
   // Função auxiliar para adicionar a logo em todas as páginas do PDF
@@ -493,23 +497,19 @@ function App() {
       );
       return;
     }
-    const acrescimo = calcularAcrescimoPorItem();
-    const servicosSelecionadosAtualizados = servicosSelecionados.map((s) => ({
-      ...s,
-      preco_unitario: s.preco_unitario + acrescimo / (s.quantidade || 1),
-    }));
-    const servicosManuaisAtualizados = servicosManuais.map((s) => ({
-      ...s,
-      preco_unitario: s.preco_unitario + acrescimo / (s.quantidade || 1),
-    }));
-    const subtotal = calcularTotal();
+    const subtotalMaoDeObra = calcularSubtotalMaoDeObra();
+    const subtotalMateriais = calcularSubtotalMateriais();
+    const subtotal = subtotalMaoDeObra + subtotalMateriais;
     const valorTotal = subtotal * (1 - desconto / 100);
     const orcamento = {
       cliente,
-      servicosSelecionados: servicosSelecionadosAtualizados,
-      servicosManuais: servicosManuaisAtualizados,
+      servicosSelecionados,
+      servicosManuais,
+      materiais,
       observacoesGerais,
       desconto,
+      subtotalMaoDeObra,
+      subtotalMateriais,
       subtotal,
       valorTotal,
       dataCriacao: new Date().toLocaleDateString("pt-BR"),
@@ -530,7 +530,7 @@ function App() {
     }
     doc.text(`Data: ${orcamento.dataCriacao}`, 14, 51);
 
-    // Adiciona a tabela de serviços
+    // Adiciona a tabela de serviços (mão de obra)
     autoTable(doc, {
       startY: 60,
       head: [["Serviço", "Qtd", "Descrição", "Valor"]],
@@ -545,6 +545,31 @@ function App() {
     });
 
     let finalY = doc.lastAutoTable ? doc.lastAutoTable.finalY : 60;
+    doc.text(
+      `Subtotal Mão de Obra: R$ ${orcamento.subtotalMaoDeObra.toFixed(2)}`,
+      14,
+      finalY + 10
+    );
+    finalY += 16;
+
+    if (orcamento.materiais.length > 0) {
+      autoTable(doc, {
+        startY: finalY,
+        head: [["Material", "Qtd", "Valor"]],
+        body: orcamento.materiais.map((m) => [
+          m.descricao,
+          m.quantidade,
+          `R$ ${(m.preco_unitario * m.quantidade).toFixed(2)}`,
+        ]),
+      });
+      finalY = doc.lastAutoTable ? doc.lastAutoTable.finalY : finalY;
+      doc.text(
+        `Subtotal Materiais: R$ ${orcamento.subtotalMateriais.toFixed(2)}`,
+        14,
+        finalY + 10
+      );
+      finalY += 16;
+    }
 
     if (orcamento.observacoesGerais) {
       doc.text(`Observações: ${orcamento.observacoesGerais}`, 14, finalY + 10);
@@ -806,7 +831,8 @@ function App() {
     setCliente({ nome: "", contato: "", endereco: "" });
     setServicosSelecionados([]);
     setServicosManuais([]);
-    setDespesasExtras([]);
+    setMateriais([]);
+    setNovoMaterial({ descricao: "", quantidade: "", preco_unitario: "" });
     setObservacoesGerais("");
     setDesconto(0);
     setServicosRelatorioSelecionados([]);
@@ -828,8 +854,6 @@ function App() {
   const arquivosFiltrados = Object.entries(arquivos).filter(([nome]) =>
     nome.toLowerCase().includes(buscaArquivo.toLowerCase())
   );
-
-  const acrescimo = calcularAcrescimoPorItem();
 
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 p-4 overflow-hidden">
@@ -1236,68 +1260,83 @@ function App() {
               </CardContent>
             </Card>
 
-            {/* Despesas Extras */}
+            {/* Materiais */}
             <Card>
               <CardHeader>
-                <CardTitle>Despesas Extras</CardTitle>
+                <CardTitle>Materiais</CardTitle>
                 <CardDescription>
-                  Adicione despesas como combustível, deslocamento, etc.
+                  Adicione materiais necessários para o serviço
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <Label htmlFor="descricao-despesa">Descrição</Label>
+                    <Label htmlFor="descricao-material">Descrição</Label>
                     <Input
-                      id="descricao-despesa"
-                      value={novaDespesa.descricao}
+                      id="descricao-material"
+                      value={novoMaterial.descricao}
                       onChange={(e) =>
-                        setNovaDespesa({
-                          ...novaDespesa,
+                        setNovoMaterial({
+                          ...novoMaterial,
                           descricao: e.target.value,
                         })
                       }
-                      placeholder="Ex: Combustível, Deslocamento"
+                      placeholder="Ex: Fio 2,5mm"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="valor-despesa">Valor</Label>
+                    <Label htmlFor="quantidade-material">Quantidade</Label>
+                    <Input
+                      id="quantidade-material"
+                      type="number"
+                      value={novoMaterial.quantidade}
+                      onChange={(e) =>
+                        setNovoMaterial({
+                          ...novoMaterial,
+                          quantidade: e.target.value,
+                        })
+                      }
+                      placeholder="0"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="valor-material">Valor unitário</Label>
                     <div className="flex gap-2">
                       <Input
-                        id="valor-despesa"
+                        id="valor-material"
                         type="number"
                         step="0.01"
-                        value={novaDespesa.valor}
+                        value={novoMaterial.preco_unitario}
                         onChange={(e) =>
-                          setNovaDespesa({
-                            ...novaDespesa,
-                            valor: e.target.value,
+                          setNovoMaterial({
+                            ...novoMaterial,
+                            preco_unitario: e.target.value,
                           })
                         }
                         placeholder="0.00"
                       />
-                      <Button onClick={adicionarDespesaExtra} size="sm">
+                      <Button onClick={adicionarMaterial} size="sm">
                         <Plus className="h-4 w-4" />
                       </Button>
                     </div>
                   </div>
                 </div>
 
-                {despesasExtras.length > 0 && (
+                {materiais.length > 0 && (
                   <div className="space-y-2">
-                    <h4 className="font-medium">Despesas Adicionadas:</h4>
-                    {despesasExtras.map((despesa) => (
+                    <h4 className="font-medium">Materiais Adicionados:</h4>
+                    {materiais.map((material) => (
                       <div
-                        key={despesa.id}
+                        key={material.id}
                         className="flex justify-between items-center p-3 border rounded"
                       >
-                        <span>{despesa.descricao}</span>
+                        <span>{material.descricao}</span>
                         <div className="flex items-center gap-2">
-                          <Badge>R$ {despesa.valor.toFixed(2)}</Badge>
+                          <Badge>{`${material.quantidade} x R$ ${material.preco_unitario.toFixed(2)} = R$ ${(material.quantidade * material.preco_unitario).toFixed(2)}`}</Badge>
                           <Button
                             variant="destructive"
                             size="sm"
-                            onClick={() => removerDespesaExtra(despesa.id)}
+                            onClick={() => removerMaterial(material.id)}
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -1380,9 +1419,7 @@ function App() {
                     </h3>
                     <div className="space-y-2">
                       {servicosSelecionados.map((servico) => {
-                        const precoFinal =
-                          servico.preco_unitario +
-                          acrescimo / (servico.quantidade || 1);
+                        const precoFinal = servico.preco_unitario;
                         return (
                           <div
                             key={servico.id}
@@ -1425,9 +1462,7 @@ function App() {
                     <h3 className="font-semibold mb-3">Serviços Adicionais:</h3>
                     <div className="space-y-2">
                       {servicosManuais.map((servico) => {
-                        const precoFinal =
-                          servico.preco_unitario +
-                          acrescimo / (servico.quantidade || 1);
+                        const precoFinal = servico.preco_unitario;
                         return (
                           <div
                             key={servico.id}
@@ -1449,6 +1484,26 @@ function App() {
                           </div>
                         );
                       })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Materiais */}
+                {materiais.length > 0 && (
+                  <div>
+                    <h3 className="font-semibold mb-3">Materiais:</h3>
+                    <div className="space-y-2">
+                      {materiais.map((material) => (
+                        <div
+                          key={material.id}
+                          className="flex justify-between items-start p-3 border rounded"
+                        >
+                          <div className="flex-1">
+                            <p className="font-medium">{material.descricao}</p>
+                          </div>
+                          <Badge>{`${material.quantidade} x R$ ${material.preco_unitario.toFixed(2)} = R$ ${(material.quantidade * material.preco_unitario).toFixed(2)}`}</Badge>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 )}
@@ -1479,8 +1534,16 @@ function App() {
                   />
                 </div>
 
-                {/* Total */}
-                <div className="text-right">
+                {/* Totais */}
+                <div className="text-right space-y-1">
+                  <p>
+                    Subtotal Mão de Obra: R$
+                    {calcularSubtotalMaoDeObra().toFixed(2)}
+                  </p>
+                  <p>
+                    Subtotal Materiais: R$
+                    {calcularSubtotalMateriais().toFixed(2)}
+                  </p>
                   <div className="text-2xl font-bold text-green-600">
                     Total: R${" "}
                     {(calcularTotal() * (1 - desconto / 100)).toFixed(2)}
