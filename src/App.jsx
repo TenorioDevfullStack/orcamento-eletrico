@@ -596,16 +596,6 @@ function App() {
     });
 
     let finalY = docServicos.lastAutoTable ? docServicos.lastAutoTable.finalY : 60;
-    if (despesasExtras.length > 0) {
-      docServicos.text(
-        `Total Despesas Extras: R$ ${despesasExtras
-          .reduce((acc, d) => acc + d.valor, 0)
-          .toFixed(2)}`,
-        14,
-        finalY + 10
-      );
-      finalY += 16;
-    }
     docServicos.text(
       `Subtotal Mão de Obra: R$ ${subtotalMaoDeObra.toFixed(2)}`,
       14,
@@ -614,8 +604,12 @@ function App() {
     finalY += 16;
 
     if (observacoesGerais) {
-      docServicos.text(`Observações: ${observacoesGerais}`, 14, finalY + 10);
-      finalY += 16;
+      const obsText = docServicos.splitTextToSize(
+        `Observações: ${observacoesGerais}`,
+        180
+      );
+      docServicos.text(obsText, 14, finalY + 10);
+      finalY += obsText.length * 10;
     }
 
     if (arquivosObservacoes.length > 0) {
@@ -729,12 +723,12 @@ function App() {
       finalYMat += 16;
 
       if (observacoesGerais) {
-        docMateriais.text(
+        const obsTextMat = docMateriais.splitTextToSize(
           `Observações: ${observacoesGerais}`,
-          14,
-          finalYMat + 10
+          180
         );
-        finalYMat += 16;
+        docMateriais.text(obsTextMat, 14, finalYMat + 10);
+        finalYMat += obsTextMat.length * 10;
       }
 
       if (arquivosObservacoes.length > 0) {
