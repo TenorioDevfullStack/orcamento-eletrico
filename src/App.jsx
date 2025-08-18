@@ -1061,11 +1061,11 @@ function App() {
               }}
             />
             <h1 className="text-3xl font-bold text-gray-900">
-              Orçamento Elétrico
+              Orçamento Elétrico e Relatório
             </h1>
           </div>
           <p className="text-gray-600">
-            Sistema para geração de orçamentos de serviços elétricos
+            Sistema para geração de orçamentos de serviços elétricos e relatórios
           </p>
         </div>
 

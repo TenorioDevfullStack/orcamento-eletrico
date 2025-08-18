@@ -1,7 +1,7 @@
 {
   "name": "Orçamento Elétrico PWA",
   "short_name": "Orçamento Elétrico",
-  "description": "Sistema para geração de orçamentos de serviços elétricos",
+  "description": "Sistema para geração de orçamentos de serviços elétricos e relatórios",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
