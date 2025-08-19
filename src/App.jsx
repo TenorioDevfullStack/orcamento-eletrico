@@ -1060,11 +1060,11 @@ function App() {
                 background: "transparent",
               }}
             />
-            <h1 className="text-3xl font-bold text-gray-900">
+            <h1 className="text-3xl font-bold text-white">
               Orçamento Elétrico e Relatório
             </h1>
           </div>
-          <p className="text-gray-600">
+          <p className="text-white">
             Sistema para geração de orçamentos de serviços elétricos e relatórios
           </p>
         </div>
