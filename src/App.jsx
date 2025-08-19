@@ -1041,7 +1041,7 @@ function App() {
   );
 
   return (
-    <div className="relative min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 p-4 overflow-hidden">
+    <div className="relative min-h-screen p-4 overflow-hidden">
       <ElectricBackground />
 
       <div className="relative z-10 max-w-4xl mx-auto">

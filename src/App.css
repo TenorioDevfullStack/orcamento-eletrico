@@ -115,6 +115,7 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply text-foreground;
+    background: linear-gradient(180deg, #0c0f07 0%, #37653d 50%, #f28017 100%);
   }
 }
