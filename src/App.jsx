@@ -130,7 +130,7 @@ function App() {
     descricao: "",
     quantidade: "",
     unidade: "un",
-    foto: "",
+    fotos: [],
   });
   const [desconto, setDesconto] = useState(0);
 
@@ -370,7 +370,7 @@ function App() {
     } else {
       setServicosRelatorioSelecionados([
         ...servicosRelatorioSelecionados,
-        { ...servico, quantidade: 1, descricao: "", foto: "" },
+        { ...servico, quantidade: 1, descricao: "", fotos: [] },
       ]);
     }
   };
@@ -392,31 +392,37 @@ function App() {
   };
 
   const adicionarFotoServicoRelatorio = (id, e) => {
-    const file = e.target.files && e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setServicosRelatorioSelecionados(
-        servicosRelatorioSelecionados.map((s) =>
-          s.id === id ? { ...s, foto: reader.result } : s
-        )
-      );
-    };
-    reader.readAsDataURL(file);
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    files.forEach((file) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setServicosRelatorioSelecionados((prev) =>
+          prev.map((s) =>
+            s.id === id
+              ? { ...s, fotos: [...(s.fotos || []), reader.result] }
+              : s
+          )
+        );
+      };
+      reader.readAsDataURL(file);
+    });
     e.target.value = "";
   };
 
   const handleFotoNovoServicoRelatorioManual = (e) => {
-    const file = e.target.files && e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setNovoServicoRelatorioManual({
-        ...novoServicoRelatorioManual,
-        foto: reader.result,
-      });
-    };
-    reader.readAsDataURL(file);
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    files.forEach((file) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setNovoServicoRelatorioManual((prev) => ({
+          ...prev,
+          fotos: [...(prev.fotos || []), reader.result],
+        }));
+      };
+      reader.readAsDataURL(file);
+    });
     e.target.value = "";
   };
 
@@ -433,7 +439,7 @@ function App() {
           descricao: novoServicoRelatorioManual.descricao,
           quantidade: parseFloat(novoServicoRelatorioManual.quantidade) || 0,
           unidade: novoServicoRelatorioManual.unidade || "un",
-          foto: novoServicoRelatorioManual.foto,
+          fotos: novoServicoRelatorioManual.fotos || [],
         },
       ]);
       setNovoServicoRelatorioManual({
@@ -441,7 +447,7 @@ function App() {
         descricao: "",
         quantidade: "",
         unidade: "un",
-        foto: "",
+        fotos: [],
       });
     }
   };
@@ -458,7 +464,7 @@ function App() {
     if (existe) {
       setLista(lista.filter((p) => p.problema !== item));
     } else {
-      setLista([...lista, { problema: item, descricao: "", foto: "" }]);
+      setLista([...lista, { problema: item, descricao: "", fotos: [] }]);
     }
   };
 
@@ -467,31 +473,37 @@ function App() {
   };
 
   const adicionarFotoProblema = (item, e, lista, setLista) => {
-    const file = e.target.files && e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setLista(
-        lista.map((p) =>
-          p.problema === item ? { ...p, foto: reader.result } : p
-        )
-      );
-    };
-    reader.readAsDataURL(file);
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    files.forEach((file) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setLista((prev) =>
+          prev.map((p) =>
+            p.problema === item
+              ? { ...p, fotos: [...(p.fotos || []), reader.result] }
+              : p
+          )
+        );
+      };
+      reader.readAsDataURL(file);
+    });
     e.target.value = "";
   };
 
   const adicionarFotoRelatorio = (e) => {
-    const file = e.target.files && e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setFotosRelatorio([
-        ...fotosRelatorio,
-        { id: Date.now(), src: reader.result, descricao: "" },
-      ]);
-    };
-    reader.readAsDataURL(file);
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    files.forEach((file) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFotosRelatorio((prev) => [
+          ...prev,
+          { id: Date.now() + Math.random(), src: reader.result, descricao: "" },
+        ]);
+      };
+      reader.readAsDataURL(file);
+    });
     e.target.value = "";
   };
 
@@ -523,6 +535,19 @@ function App() {
 
   const calcularTotal = () => {
     return calcularSubtotalMaoDeObra() + calcularSubtotalMateriais();
+  };
+
+  const addWrappedText = (
+    doc,
+    text,
+    x,
+    y,
+    maxWidth = 180,
+    lineHeight = 6
+  ) => {
+    const lines = doc.splitTextToSize(text, maxWidth);
+    doc.text(lines, x, y);
+    return y + lines.length * lineHeight;
   };
 
   // Função auxiliar para adicionar a logo em todas as páginas do PDF
@@ -575,15 +600,36 @@ function App() {
     docServicos.setFontSize(18);
     docServicos.text("Orçamento de Serviços Elétricos - Mão de Obra", 14, 20);
     docServicos.setFontSize(12);
-    docServicos.text(`Cliente: ${orcamento.cliente.nome}`, 14, 30);
-    docServicos.text(`Contato: ${orcamento.cliente.contato}`, 14, 37);
+    let yServ = 30;
+    yServ = addWrappedText(
+      docServicos,
+      `Cliente: ${orcamento.cliente.nome}`,
+      14,
+      yServ
+    );
+    yServ = addWrappedText(
+      docServicos,
+      `Contato: ${orcamento.cliente.contato}`,
+      14,
+      yServ
+    );
     if (orcamento.cliente.endereco) {
-      docServicos.text(`Endereço: ${orcamento.cliente.endereco}`, 14, 44);
+      yServ = addWrappedText(
+        docServicos,
+        `Endereço: ${orcamento.cliente.endereco}`,
+        14,
+        yServ
+      );
     }
-    docServicos.text(`Data: ${orcamento.dataCriacao}`, 14, 51);
+    yServ = addWrappedText(
+      docServicos,
+      `Data: ${orcamento.dataCriacao}`,
+      14,
+      yServ
+    );
 
     autoTable(docServicos, {
-      startY: 60,
+      startY: yServ + 10,
       head: [["Serviço", "Qtd", "Descrição", "Valor"]],
       body: [...orcamento.servicosSelecionados, ...orcamento.servicosManuais].map(
         (s) => [
@@ -594,8 +640,9 @@ function App() {
         ]
       ),
     });
-
-    let finalY = docServicos.lastAutoTable ? docServicos.lastAutoTable.finalY : 60;
+    let finalY = docServicos.lastAutoTable
+      ? docServicos.lastAutoTable.finalY
+      : yServ + 10;
     docServicos.text(
       `Subtotal Mão de Obra: R$ ${subtotalMaoDeObra.toFixed(2)}`,
       14,
@@ -637,12 +684,13 @@ function App() {
             console.error("Erro ao adicionar imagem de observação:", e);
           }
         } else {
-          if (y + 6 > 280) {
+          const linhasArq = docServicos.splitTextToSize(arq.nome, 180);
+          if (y + linhasArq.length * 6 > 280) {
             docServicos.addPage();
             y = 20;
           }
-          docServicos.text(arq.nome, 14, y);
-          y += 6;
+          docServicos.text(linhasArq, 14, y);
+          y += linhasArq.length * 6;
         }
       });
       finalY = y;
@@ -692,19 +740,36 @@ function App() {
       docMateriais.setFontSize(18);
       docMateriais.text("Orçamento de Materiais", 14, 20);
       docMateriais.setFontSize(12);
-      docMateriais.text(`Cliente: ${orcamento.cliente.nome}`, 14, 30);
-      docMateriais.text(`Contato: ${orcamento.cliente.contato}`, 14, 37);
+      let yMat = 30;
+      yMat = addWrappedText(
+        docMateriais,
+        `Cliente: ${orcamento.cliente.nome}`,
+        14,
+        yMat
+      );
+      yMat = addWrappedText(
+        docMateriais,
+        `Contato: ${orcamento.cliente.contato}`,
+        14,
+        yMat
+      );
       if (orcamento.cliente.endereco) {
-        docMateriais.text(
+        yMat = addWrappedText(
+          docMateriais,
           `Endereço: ${orcamento.cliente.endereco}`,
           14,
-          44
+          yMat
         );
       }
-      docMateriais.text(`Data: ${orcamento.dataCriacao}`, 14, 51);
+      yMat = addWrappedText(
+        docMateriais,
+        `Data: ${orcamento.dataCriacao}`,
+        14,
+        yMat
+      );
 
       autoTable(docMateriais, {
-        startY: 60,
+        startY: yMat + 10,
         head: [["Material", "Qtd", "Valor"]],
         body: materiais.map((m) => [
           m.descricao,
@@ -714,7 +779,7 @@ function App() {
       });
       let finalYMat = docMateriais.lastAutoTable
         ? docMateriais.lastAutoTable.finalY
-        : 60;
+        : yMat + 10;
       docMateriais.text(
         `Subtotal Materiais: R$ ${subtotalMateriais.toFixed(2)}`,
         14,
@@ -756,12 +821,13 @@ function App() {
               console.error("Erro ao adicionar imagem de observação:", e);
             }
           } else {
-            if (y + 6 > 280) {
+            const linhasArq = docMateriais.splitTextToSize(arq.nome, 180);
+            if (y + linhasArq.length * 6 > 280) {
               docMateriais.addPage();
               y = 20;
             }
-            docMateriais.text(arq.nome, 14, y);
-            y += 6;
+            docMateriais.text(linhasArq, 14, y);
+            y += linhasArq.length * 6;
           }
         });
       }
@@ -811,9 +877,20 @@ function App() {
       doc.setFontSize(18);
       doc.text("Relatório de Inspeção", 14, 20);
       doc.setFontSize(12);
-      doc.text(`Cliente: ${cliente.nome}`, 14, 30);
-      doc.text(`Data: ${new Date().toLocaleDateString("pt-BR")}`, 14, 40);
-      let y = 50;
+      let y = 30;
+      y = addWrappedText(
+        doc,
+        `Cliente: ${cliente.nome}`,
+        14,
+        y
+      );
+      y = addWrappedText(
+        doc,
+        `Data: ${new Date().toLocaleDateString("pt-BR")}`,
+        14,
+        y
+      );
+      y += 10;
 
       // Adiciona problemas elétricos se houver
       if (problemasEletricosSelecionados.length > 0) {
@@ -824,27 +901,38 @@ function App() {
         doc.text("Problemas Elétricos:", 14, y);
         y += 6;
         problemasEletricosSelecionados.forEach((p) => {
-          doc.text(`- ${p.problema}`, 16, y);
-          y += 6;
+          const problemaTexto = doc.splitTextToSize(`- ${p.problema}`, 180);
+          if (y + problemaTexto.length * 6 > 280) {
+            doc.addPage();
+            y = 20;
+          }
+          doc.text(problemaTexto, 16, y);
+          y += problemaTexto.length * 6;
           if (p.descricao) {
             const linhas = doc.splitTextToSize(p.descricao, 180);
+            if (y + linhas.length * 6 > 280) {
+              doc.addPage();
+              y = 20;
+            }
             doc.text(linhas, 18, y);
             y += linhas.length * 6;
           }
-          if (p.foto) {
-            try {
-              const props = doc.getImageProperties(p.foto);
-              const w = 180;
-              const h = (props.height * w) / props.width;
-              if (y + h > 280) {
-                doc.addPage();
-                y = 20;
+          if (p.fotos && p.fotos.length > 0) {
+            p.fotos.forEach((foto) => {
+              try {
+                const props = doc.getImageProperties(foto);
+                const w = 180;
+                const h = (props.height * w) / props.width;
+                if (y + h > 280) {
+                  doc.addPage();
+                  y = 20;
+                }
+                doc.addImage(foto, props.fileType || "JPEG", 14, y, w, h);
+                y += h + 4;
+              } catch (error) {
+                console.error("Erro ao adicionar foto do problema:", error);
               }
-              doc.addImage(p.foto, props.fileType || "JPEG", 14, y, w, h);
-              y += h + 4;
-            } catch (error) {
-              console.error("Erro ao adicionar foto do problema:", error);
-            }
+            });
           }
         });
       }
@@ -858,27 +946,38 @@ function App() {
         doc.text("Outros Problemas:", 14, y);
         y += 6;
         outrosProblemasSelecionados.forEach((p) => {
-          doc.text(`- ${p.problema}`, 16, y);
-          y += 6;
+          const problemaTexto = doc.splitTextToSize(`- ${p.problema}`, 180);
+          if (y + problemaTexto.length * 6 > 280) {
+            doc.addPage();
+            y = 20;
+          }
+          doc.text(problemaTexto, 16, y);
+          y += problemaTexto.length * 6;
           if (p.descricao) {
             const linhas = doc.splitTextToSize(p.descricao, 180);
+            if (y + linhas.length * 6 > 280) {
+              doc.addPage();
+              y = 20;
+            }
             doc.text(linhas, 18, y);
             y += linhas.length * 6;
           }
-          if (p.foto) {
-            try {
-              const props = doc.getImageProperties(p.foto);
-              const w = 180;
-              const h = (props.height * w) / props.width;
-              if (y + h > 280) {
-                doc.addPage();
-                y = 20;
+          if (p.fotos && p.fotos.length > 0) {
+            p.fotos.forEach((foto) => {
+              try {
+                const props = doc.getImageProperties(foto);
+                const w = 180;
+                const h = (props.height * w) / props.width;
+                if (y + h > 280) {
+                  doc.addPage();
+                  y = 20;
+                }
+                doc.addImage(foto, props.fileType || "JPEG", 14, y, w, h);
+                y += h + 4;
+              } catch (error) {
+                console.error("Erro ao adicionar foto do problema:", error);
               }
-              doc.addImage(p.foto, props.fileType || "JPEG", 14, y, w, h);
-              y += h + 4;
-            } catch (error) {
-              console.error("Erro ao adicionar foto do problema:", error);
-            }
+            });
           }
         });
       }
@@ -904,44 +1003,58 @@ function App() {
           const texto = `- ${s.nome} (${s.quantidade} ${unidade})${
             s.descricao ? " - " + s.descricao : ""
           }`;
-          doc.text(texto, 16, y);
-          y += 6;
-          if (s.foto) {
-            try {
-              const props = doc.getImageProperties(s.foto);
-              const w = 180;
-              const h = (props.height * w) / props.width;
-              if (y + h > 280) {
-                doc.addPage();
-                y = 20;
+          const linhasServico = doc.splitTextToSize(texto, 180);
+          if (y + linhasServico.length * 6 > 280) {
+            doc.addPage();
+            y = 20;
+          }
+          doc.text(linhasServico, 16, y);
+          y += linhasServico.length * 6;
+          if (s.fotos && s.fotos.length > 0) {
+            s.fotos.forEach((foto) => {
+              try {
+                const props = doc.getImageProperties(foto);
+                const w = 180;
+                const h = (props.height * w) / props.width;
+                if (y + h > 280) {
+                  doc.addPage();
+                  y = 20;
+                }
+                doc.addImage(foto, props.fileType || "JPEG", 14, y, w, h);
+                y += h + 4;
+              } catch (error) {
+                console.error("Erro ao adicionar foto do serviço:", error);
               }
-              doc.addImage(s.foto, props.fileType || "JPEG", 14, y, w, h);
-              y += h + 4;
-            } catch (error) {
-              console.error("Erro ao adicionar foto do serviço:", error);
-            }
+            });
           }
         });
         servicosRelatorioManuais.forEach((s) => {
           const texto = `- ${s.nome} (${s.quantidade} ${s.unidade || "un"})${
             s.descricao ? " - " + s.descricao : ""
           }`;
-          doc.text(texto, 16, y);
-          y += 6;
-          if (s.foto) {
-            try {
-              const props = doc.getImageProperties(s.foto);
-              const w = 180;
-              const h = (props.height * w) / props.width;
-              if (y + h > 280) {
-                doc.addPage();
-                y = 20;
+          const linhasServico = doc.splitTextToSize(texto, 180);
+          if (y + linhasServico.length * 6 > 280) {
+            doc.addPage();
+            y = 20;
+          }
+          doc.text(linhasServico, 16, y);
+          y += linhasServico.length * 6;
+          if (s.fotos && s.fotos.length > 0) {
+            s.fotos.forEach((foto) => {
+              try {
+                const props = doc.getImageProperties(foto);
+                const w = 180;
+                const h = (props.height * w) / props.width;
+                if (y + h > 280) {
+                  doc.addPage();
+                  y = 20;
+                }
+                doc.addImage(foto, props.fileType || "JPEG", 14, y, w, h);
+                y += h + 4;
+              } catch (error) {
+                console.error("Erro ao adicionar foto do serviço manual:", error);
               }
-              doc.addImage(s.foto, props.fileType || "JPEG", 14, y, w, h);
-              y += h + 4;
-            } catch (error) {
-              console.error("Erro ao adicionar foto do serviço manual:", error);
-            }
+            });
           }
         });
       }
@@ -952,6 +1065,10 @@ function App() {
         doc.text("Observações:", 14, y);
         y += 6;
         const linhas = doc.splitTextToSize(descricaoRelatorio, 180);
+        if (y + linhas.length * 6 > 280) {
+          doc.addPage();
+          y = 20;
+        }
         doc.text(linhas, 16, y);
         y += linhas.length * 6 + 4;
       }
@@ -1026,7 +1143,7 @@ function App() {
       descricao: "",
       quantidade: "",
       unidade: "un",
-      foto: "",
+      fotos: [],
     });
     setProblemasEletricosSelecionados([]);
     setOutrosProblemasSelecionados([]);
@@ -1624,12 +1741,21 @@ function App() {
                 />
                 <div className="mt-4 space-y-2">
                   <Label htmlFor="arquivos-observacoes">Anexos</Label>
-                  <Input
-                    id="arquivos-observacoes"
-                    type="file"
-                    multiple
-                    onChange={handleUploadObservacoes}
-                  />
+                  <div className="flex flex-col gap-2">
+                    <Input
+                      id="arquivos-observacoes"
+                      type="file"
+                      multiple
+                      onChange={handleUploadObservacoes}
+                    />
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      multiple
+                      onChange={handleUploadObservacoes}
+                    />
+                  </div>
                   {arquivosObservacoes.length > 0 && (
                     <div className="flex flex-wrap gap-2 mt-2">
                       {arquivosObservacoes.map((arq) =>
@@ -2014,24 +2140,43 @@ function App() {
                                       >
                                         Foto
                                       </Label>
-                                      <Input
-                                        id={`foto-servico-rel-${servico.id}`}
-                                        type="file"
-                                        accept="image/*"
-                                        capture="environment"
-                                        onChange={(e) =>
-                                          adicionarFotoServicoRelatorio(
-                                            servico.id,
-                                            e
-                                          )
-                                        }
-                                      />
-                                      {selecionado.foto && (
-                                        <img
-                                          src={selecionado.foto}
-                                          alt="Evidência"
-                                          className="w-full max-w-xs rounded"
+                                      <div className="flex flex-col gap-2">
+                                        <Input
+                                          id={`foto-servico-rel-${servico.id}`}
+                                          type="file"
+                                          accept="image/*"
+                                          capture="environment"
+                                          multiple
+                                          onChange={(e) =>
+                                            adicionarFotoServicoRelatorio(
+                                              servico.id,
+                                              e
+                                            )
+                                          }
                                         />
+                                        <Input
+                                          type="file"
+                                          accept="image/*"
+                                          multiple
+                                          onChange={(e) =>
+                                            adicionarFotoServicoRelatorio(
+                                              servico.id,
+                                              e
+                                            )
+                                          }
+                                        />
+                                      </div>
+                                      {selecionado.fotos && selecionado.fotos.length > 0 && (
+                                        <div className="flex flex-wrap gap-2">
+                                          {selecionado.fotos.map((foto, idx) => (
+                                            <img
+                                              key={idx}
+                                              src={foto}
+                                              alt="Evidência"
+                                              className="w-full max-w-xs rounded"
+                                            />
+                                          ))}
+                                        </div>
                                       )}
                                     </div>
                                   )}
@@ -2096,21 +2241,36 @@ function App() {
                         })
                       }
                     />
-                    <Label htmlFor="foto-servico-relatorio">Foto</Label>
-                    <Input
-                      id="foto-servico-relatorio"
-                      type="file"
-                      accept="image/*"
-                      capture="environment"
-                      onChange={handleFotoNovoServicoRelatorioManual}
-                    />
-                    {novoServicoRelatorioManual.foto && (
-                      <img
-                        src={novoServicoRelatorioManual.foto}
-                        alt="Pré-visualização"
-                        className="w-full max-w-xs rounded"
+                    <Label htmlFor="foto-servico-relatorio">Fotos</Label>
+                    <div className="flex flex-col gap-2">
+                      <Input
+                        id="foto-servico-relatorio"
+                        type="file"
+                        accept="image/*"
+                        capture="environment"
+                        multiple
+                        onChange={handleFotoNovoServicoRelatorioManual}
                       />
-                    )}
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onChange={handleFotoNovoServicoRelatorioManual}
+                      />
+                    </div>
+                    {novoServicoRelatorioManual.fotos &&
+                      novoServicoRelatorioManual.fotos.length > 0 && (
+                        <div className="flex flex-wrap gap-2">
+                          {novoServicoRelatorioManual.fotos.map((foto, idx) => (
+                            <img
+                              key={idx}
+                              src={foto}
+                              alt="Pré-visualização"
+                              className="w-full max-w-xs rounded"
+                            />
+                          ))}
+                        </div>
+                      )}
                   </div>
                   <Button
                     variant="outline"
@@ -2143,12 +2303,17 @@ function App() {
                               {servico.descricao}
                             </p>
                           )}
-                          {servico.foto && (
-                            <img
-                              src={servico.foto}
-                              alt="Evidência"
-                              className="w-full max-w-xs rounded"
-                            />
+                          {servico.fotos && servico.fotos.length > 0 && (
+                            <div className="flex flex-wrap gap-2">
+                              {servico.fotos.map((foto, idx) => (
+                                <img
+                                  key={idx}
+                                  src={foto}
+                                  alt="Evidência"
+                                  className="w-full max-w-xs rounded"
+                                />
+                              ))}
+                            </div>
                           )}
                         </div>
                       ))}
@@ -2211,25 +2376,46 @@ function App() {
                                     placeholder="Descrição do problema"
                                     rows={2}
                                   />
-                                  <Input
-                                    type="file"
-                                    accept="image/*"
-                                    capture="environment"
-                                    onChange={(e) =>
-                                      adicionarFotoProblema(
-                                        p,
-                                        e,
-                                        problemasEletricosSelecionados,
-                                        setProblemasEletricosSelecionados
-                                      )
-                                    }
-                                  />
-                                  {selecionado.foto && (
-                                    <img
-                                      src={selecionado.foto}
-                                      alt="Evidência"
-                                      className="w-full max-w-xs rounded"
+                                  <div className="flex flex-col gap-2">
+                                    <Input
+                                      type="file"
+                                      accept="image/*"
+                                      capture="environment"
+                                      multiple
+                                      onChange={(e) =>
+                                        adicionarFotoProblema(
+                                          p,
+                                          e,
+                                          problemasEletricosSelecionados,
+                                          setProblemasEletricosSelecionados
+                                        )
+                                      }
                                     />
+                                    <Input
+                                      type="file"
+                                      accept="image/*"
+                                      multiple
+                                      onChange={(e) =>
+                                        adicionarFotoProblema(
+                                          p,
+                                          e,
+                                          problemasEletricosSelecionados,
+                                          setProblemasEletricosSelecionados
+                                        )
+                                      }
+                                    />
+                                  </div>
+                                  {selecionado.fotos && selecionado.fotos.length > 0 && (
+                                    <div className="flex flex-wrap gap-2">
+                                      {selecionado.fotos.map((foto, idx) => (
+                                        <img
+                                          key={idx}
+                                          src={foto}
+                                          alt="Evidência"
+                                          className="w-full max-w-xs rounded"
+                                        />
+                                      ))}
+                                    </div>
                                   )}
                                 </div>
                               )}
@@ -2279,25 +2465,46 @@ function App() {
                                     placeholder="Descrição do problema"
                                     rows={2}
                                   />
-                                  <Input
-                                    type="file"
-                                    accept="image/*"
-                                    capture="environment"
-                                    onChange={(e) =>
-                                      adicionarFotoProblema(
-                                        p,
-                                        e,
-                                        outrosProblemasSelecionados,
-                                        setOutrosProblemasSelecionados
-                                      )
-                                    }
-                                  />
-                                  {selecionado.foto && (
-                                    <img
-                                      src={selecionado.foto}
-                                      alt="Evidência"
-                                      className="w-full max-w-xs rounded"
+                                  <div className="flex flex-col gap-2">
+                                    <Input
+                                      type="file"
+                                      accept="image/*"
+                                      capture="environment"
+                                      multiple
+                                      onChange={(e) =>
+                                        adicionarFotoProblema(
+                                          p,
+                                          e,
+                                          outrosProblemasSelecionados,
+                                          setOutrosProblemasSelecionados
+                                        )
+                                      }
                                     />
+                                    <Input
+                                      type="file"
+                                      accept="image/*"
+                                      multiple
+                                      onChange={(e) =>
+                                        adicionarFotoProblema(
+                                          p,
+                                          e,
+                                          outrosProblemasSelecionados,
+                                          setOutrosProblemasSelecionados
+                                        )
+                                      }
+                                    />
+                                  </div>
+                                  {selecionado.fotos && selecionado.fotos.length > 0 && (
+                                    <div className="flex flex-wrap gap-2">
+                                      {selecionado.fotos.map((foto, idx) => (
+                                        <img
+                                          key={idx}
+                                          src={foto}
+                                          alt="Evidência"
+                                          className="w-full max-w-xs rounded"
+                                        />
+                                      ))}
+                                    </div>
                                   )}
                                 </div>
                               )}
@@ -2330,6 +2537,19 @@ function App() {
                       type="file"
                       accept="image/*"
                       capture="environment"
+                      multiple
+                      onChange={adicionarFotoRelatorio}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="foto-relatorio-galeria">
+                      Selecionar da Galeria
+                    </Label>
+                    <Input
+                      id="foto-relatorio-galeria"
+                      type="file"
+                      accept="image/*"
+                      multiple
                       onChange={adicionarFotoRelatorio}
                     />
                   </div>
