@@ -550,6 +550,41 @@ function App() {
     return y + lines.length * lineHeight;
   };
 
+  const addImageWithCaption = (
+    doc,
+    image,
+    caption,
+    x,
+    y,
+    maxWidth = 180,
+    lineHeight = 6
+  ) => {
+    try {
+      const props = doc.getImageProperties(image);
+      const w = maxWidth;
+      const h = (props.height * w) / props.width;
+      if (y + h > 280) {
+        doc.addPage();
+        y = 20;
+      }
+      doc.addImage(image, props.fileType || "JPEG", x, y, w, h);
+      y += h + 4;
+      if (caption) {
+        const lines = doc.splitTextToSize(caption, maxWidth);
+        if (y + lines.length * lineHeight > 280) {
+          doc.addPage();
+          y = 20;
+        }
+        doc.text(lines, x, y);
+        y += lines.length * lineHeight + 4;
+      }
+      return y;
+    } catch (e) {
+      console.error("Erro ao adicionar imagem:", e);
+      return y;
+    }
+  };
+
   // Função auxiliar para adicionar a logo em todas as páginas do PDF
   const adicionarLogoEmTodasAsPaginas = async (doc) => {
     const logoBase64 = await getBase64Logo();
@@ -663,26 +698,7 @@ function App() {
       let y = finalY + 10;
       arquivosObservacoes.forEach((arq) => {
         if (arq.tipo.startsWith("image/")) {
-          try {
-            const props = docServicos.getImageProperties(arq.base64);
-            const w = 180;
-            const h = (props.height * w) / props.width;
-            if (y + h > 280) {
-              docServicos.addPage();
-              y = 20;
-            }
-            docServicos.addImage(
-              arq.base64,
-              arq.tipo.includes("png") ? "PNG" : "JPEG",
-              14,
-              y,
-              w,
-              h
-            );
-            y += h + 4;
-          } catch (e) {
-            console.error("Erro ao adicionar imagem de observação:", e);
-          }
+          y = addImageWithCaption(docServicos, arq.base64, arq.nome, 14, y);
         } else {
           const linhasArq = docServicos.splitTextToSize(arq.nome, 180);
           if (y + linhasArq.length * 6 > 280) {
@@ -800,26 +816,7 @@ function App() {
         let y = finalYMat + 10;
         arquivosObservacoes.forEach((arq) => {
           if (arq.tipo.startsWith("image/")) {
-            try {
-              const props = docMateriais.getImageProperties(arq.base64);
-              const w = 180;
-              const h = (props.height * w) / props.width;
-              if (y + h > 280) {
-                docMateriais.addPage();
-                y = 20;
-              }
-              docMateriais.addImage(
-                arq.base64,
-                arq.tipo.includes("png") ? "PNG" : "JPEG",
-                14,
-                y,
-                w,
-                h
-              );
-              y += h + 4;
-            } catch (e) {
-              console.error("Erro ao adicionar imagem de observação:", e);
-            }
+            y = addImageWithCaption(docMateriais, arq.base64, arq.nome, 14, y);
           } else {
             const linhasArq = docMateriais.splitTextToSize(arq.nome, 180);
             if (y + linhasArq.length * 6 > 280) {
@@ -919,19 +916,13 @@ function App() {
           }
           if (p.fotos && p.fotos.length > 0) {
             p.fotos.forEach((foto) => {
-              try {
-                const props = doc.getImageProperties(foto);
-                const w = 180;
-                const h = (props.height * w) / props.width;
-                if (y + h > 280) {
-                  doc.addPage();
-                  y = 20;
-                }
-                doc.addImage(foto, props.fileType || "JPEG", 14, y, w, h);
-                y += h + 4;
-              } catch (error) {
-                console.error("Erro ao adicionar foto do problema:", error);
-              }
+              y = addImageWithCaption(
+                doc,
+                foto,
+                p.descricao || p.problema,
+                14,
+                y
+              );
             });
           }
         });
@@ -964,19 +955,13 @@ function App() {
           }
           if (p.fotos && p.fotos.length > 0) {
             p.fotos.forEach((foto) => {
-              try {
-                const props = doc.getImageProperties(foto);
-                const w = 180;
-                const h = (props.height * w) / props.width;
-                if (y + h > 280) {
-                  doc.addPage();
-                  y = 20;
-                }
-                doc.addImage(foto, props.fileType || "JPEG", 14, y, w, h);
-                y += h + 4;
-              } catch (error) {
-                console.error("Erro ao adicionar foto do problema:", error);
-              }
+              y = addImageWithCaption(
+                doc,
+                foto,
+                p.descricao || p.problema,
+                14,
+                y
+              );
             });
           }
         });
@@ -1012,19 +997,13 @@ function App() {
           y += linhasServico.length * 6;
           if (s.fotos && s.fotos.length > 0) {
             s.fotos.forEach((foto) => {
-              try {
-                const props = doc.getImageProperties(foto);
-                const w = 180;
-                const h = (props.height * w) / props.width;
-                if (y + h > 280) {
-                  doc.addPage();
-                  y = 20;
-                }
-                doc.addImage(foto, props.fileType || "JPEG", 14, y, w, h);
-                y += h + 4;
-              } catch (error) {
-                console.error("Erro ao adicionar foto do serviço:", error);
-              }
+              y = addImageWithCaption(
+                doc,
+                foto,
+                s.descricao || s.nome,
+                14,
+                y
+              );
             });
           }
         });
@@ -1041,19 +1020,13 @@ function App() {
           y += linhasServico.length * 6;
           if (s.fotos && s.fotos.length > 0) {
             s.fotos.forEach((foto) => {
-              try {
-                const props = doc.getImageProperties(foto);
-                const w = 180;
-                const h = (props.height * w) / props.width;
-                if (y + h > 280) {
-                  doc.addPage();
-                  y = 20;
-                }
-                doc.addImage(foto, props.fileType || "JPEG", 14, y, w, h);
-                y += h + 4;
-              } catch (error) {
-                console.error("Erro ao adicionar foto do serviço manual:", error);
-              }
+              y = addImageWithCaption(
+                doc,
+                foto,
+                s.descricao || s.nome,
+                14,
+                y
+              );
             });
           }
         });
@@ -1077,28 +1050,7 @@ function App() {
       if (fotosRelatorio.length > 0) {
         console.log("Adicionando fotos do relatório:", fotosRelatorio.length);
         fotosRelatorio.forEach((foto) => {
-          try {
-            const props = doc.getImageProperties(foto.src);
-            const w = 180;
-            const h = (props.height * w) / props.width;
-            if (y + h > 280) {
-              doc.addPage();
-              y = 20;
-            }
-            doc.addImage(foto.src, props.fileType || "JPEG", 14, y, w, h);
-            y += h + 4;
-            if (foto.descricao) {
-              const texto = doc.splitTextToSize(foto.descricao, 180);
-              if (y + texto.length * 6 > 280) {
-                doc.addPage();
-                y = 20;
-              }
-              doc.text(texto, 14, y);
-              y += texto.length * 6 + 4;
-            }
-          } catch (error) {
-            console.error("Erro ao adicionar foto do relatório:", error);
-          }
+          y = addImageWithCaption(doc, foto.src, foto.descricao, 14, y);
         });
       }
 
