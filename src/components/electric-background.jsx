@@ -1,3 +1,7 @@
+export default function ElectricBackground() {
+  return <div className="electric-background" aria-hidden="true" />;
+}
+
 import { useEffect, useRef } from "react";
 
 function ElectricBackground() {
