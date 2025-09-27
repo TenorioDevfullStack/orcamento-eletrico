@@ -97,7 +97,7 @@ function App() {
   });
   const [servicosSelecionados, setServicosSelecionados] = useState([]);
   const [servicosManuais, setServicosManuais] = useState([]);
-  const [despesasExtras, setDespesasExtras] = useState([]);
+  const [materiais, setMateriais] = useState([]);
   const [observacoesGerais, setObservacoesGerais] = useState("");
   const [novoServicoManual, setNovoServicoManual] = useState({
     nome: "",
@@ -105,7 +105,17 @@ function App() {
     quantidade: "",
     preco_unitario: "",
   });
-  const [novaDespesa, setNovaDespesa] = useState({ descricao: "", valor: "" });
+  const [novoMaterial, setNovoMaterial] = useState({
+    descricao: "",
+    quantidade: "",
+    preco_unitario: "",
+  });
+  const [despesasExtras, setDespesasExtras] = useState([]);
+  const [novaDespesa, setNovaDespesa] = useState({
+    descricao: "",
+    valor: "",
+  });
+  const [arquivosObservacoes, setArquivosObservacoes] = useState([]);
   const [problemasEletricosSelecionados, setProblemasEletricosSelecionados] =
     useState([]);
   const [outrosProblemasSelecionados, setOutrosProblemasSelecionados] =
@@ -120,7 +130,7 @@ function App() {
     descricao: "",
     quantidade: "",
     unidade: "un",
-    foto: "",
+    fotos: [],
   });
   const [desconto, setDesconto] = useState(0);
 
@@ -209,6 +219,48 @@ function App() {
     });
   };
 
+  const adicionarDespesaExtra = () => {
+    if (!novaDespesa.descricao || !novaDespesa.valor) return;
+    setDespesasExtras([
+      ...despesasExtras,
+      { ...novaDespesa, id: Date.now(), valor: parseFloat(novaDespesa.valor) },
+    ]);
+    setNovaDespesa({ descricao: "", valor: "" });
+  };
+
+  const removerDespesaExtra = (id) => {
+    setDespesasExtras(despesasExtras.filter((d) => d.id !== id));
+  };
+
+  const calcularAcrescimoPorItem = () => {
+    const totalExtras = despesasExtras.reduce((acc, d) => acc + d.valor, 0);
+    const quantidadeTotal = [...servicosSelecionados, ...servicosManuais].reduce(
+      (acc, s) => acc + (parseFloat(s.quantidade) || 0),
+      0
+    );
+    return quantidadeTotal > 0 ? totalExtras / quantidadeTotal : 0;
+  };
+
+  const handleUploadObservacoes = (e) => {
+    const files = Array.from(e.target.files || []);
+    files.forEach((file) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setArquivosObservacoes((prev) => [
+          ...prev,
+          {
+            id: Date.now() + Math.random(),
+            nome: file.name,
+            tipo: file.type,
+            base64: reader.result,
+          },
+        ]);
+      };
+      reader.readAsDataURL(file);
+    });
+    e.target.value = "";
+  };
+
   // Função para adicionar/remover serviços selecionados
   const toggleServico = (servico) => {
     const existe = servicosSelecionados.find((s) => s.id === servico.id);
@@ -285,24 +337,25 @@ function App() {
     setServicosManuais(servicosManuais.filter((s) => s.id !== id));
   };
 
-  // Função para adicionar despesa extra
-  const adicionarDespesaExtra = () => {
-    if (novaDespesa.descricao && novaDespesa.valor) {
-      setDespesasExtras([
-        ...despesasExtras,
+  // Função para adicionar material
+  const adicionarMaterial = () => {
+    if (novoMaterial.descricao && novoMaterial.quantidade && novoMaterial.preco_unitario) {
+      setMateriais([
+        ...materiais,
         {
           id: Date.now().toString(),
-          ...novaDespesa,
-          valor: parseFloat(novaDespesa.valor) || 0,
+          descricao: novoMaterial.descricao,
+          quantidade: parseFloat(novoMaterial.quantidade) || 0,
+          preco_unitario: parseFloat(novoMaterial.preco_unitario) || 0,
         },
       ]);
-      setNovaDespesa({ descricao: "", valor: "" });
+      setNovoMaterial({ descricao: "", quantidade: "", preco_unitario: "" });
     }
   };
 
-  // Função para remover despesa extra
-  const removerDespesaExtra = (id) => {
-    setDespesasExtras(despesasExtras.filter((d) => d.id !== id));
+  // Função para remover material
+  const removerMaterial = (id) => {
+    setMateriais(materiais.filter((m) => m.id !== id));
   };
 
   // Funções para serviços do relatório
@@ -317,7 +370,7 @@ function App() {
     } else {
       setServicosRelatorioSelecionados([
         ...servicosRelatorioSelecionados,
-        { ...servico, quantidade: 1, descricao: "", foto: "" },
+        { ...servico, quantidade: 1, descricao: "", fotos: [] },
       ]);
     }
   };
@@ -339,31 +392,37 @@ function App() {
   };
 
   const adicionarFotoServicoRelatorio = (id, e) => {
-    const file = e.target.files && e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setServicosRelatorioSelecionados(
-        servicosRelatorioSelecionados.map((s) =>
-          s.id === id ? { ...s, foto: reader.result } : s
-        )
-      );
-    };
-    reader.readAsDataURL(file);
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    files.forEach((file) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setServicosRelatorioSelecionados((prev) =>
+          prev.map((s) =>
+            s.id === id
+              ? { ...s, fotos: [...(s.fotos || []), reader.result] }
+              : s
+          )
+        );
+      };
+      reader.readAsDataURL(file);
+    });
     e.target.value = "";
   };
 
   const handleFotoNovoServicoRelatorioManual = (e) => {
-    const file = e.target.files && e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setNovoServicoRelatorioManual({
-        ...novoServicoRelatorioManual,
-        foto: reader.result,
-      });
-    };
-    reader.readAsDataURL(file);
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    files.forEach((file) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setNovoServicoRelatorioManual((prev) => ({
+          ...prev,
+          fotos: [...(prev.fotos || []), reader.result],
+        }));
+      };
+      reader.readAsDataURL(file);
+    });
     e.target.value = "";
   };
 
@@ -380,7 +439,7 @@ function App() {
           descricao: novoServicoRelatorioManual.descricao,
           quantidade: parseFloat(novoServicoRelatorioManual.quantidade) || 0,
           unidade: novoServicoRelatorioManual.unidade || "un",
-          foto: novoServicoRelatorioManual.foto,
+          fotos: novoServicoRelatorioManual.fotos || [],
         },
       ]);
       setNovoServicoRelatorioManual({
@@ -388,7 +447,7 @@ function App() {
         descricao: "",
         quantidade: "",
         unidade: "un",
-        foto: "",
+        fotos: [],
       });
     }
   };
@@ -405,7 +464,7 @@ function App() {
     if (existe) {
       setLista(lista.filter((p) => p.problema !== item));
     } else {
-      setLista([...lista, { problema: item, descricao: "", foto: "" }]);
+      setLista([...lista, { problema: item, descricao: "", fotos: [] }]);
     }
   };
 
@@ -414,31 +473,37 @@ function App() {
   };
 
   const adicionarFotoProblema = (item, e, lista, setLista) => {
-    const file = e.target.files && e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setLista(
-        lista.map((p) =>
-          p.problema === item ? { ...p, foto: reader.result } : p
-        )
-      );
-    };
-    reader.readAsDataURL(file);
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    files.forEach((file) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setLista((prev) =>
+          prev.map((p) =>
+            p.problema === item
+              ? { ...p, fotos: [...(p.fotos || []), reader.result] }
+              : p
+          )
+        );
+      };
+      reader.readAsDataURL(file);
+    });
     e.target.value = "";
   };
 
   const adicionarFotoRelatorio = (e) => {
-    const file = e.target.files && e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setFotosRelatorio([
-        ...fotosRelatorio,
-        { id: Date.now(), src: reader.result, descricao: "" },
-      ]);
-    };
-    reader.readAsDataURL(file);
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    files.forEach((file) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFotosRelatorio((prev) => [
+          ...prev,
+          { id: Date.now() + Math.random(), src: reader.result, descricao: "" },
+        ]);
+      };
+      reader.readAsDataURL(file);
+    });
     e.target.value = "";
   };
 
@@ -448,28 +513,76 @@ function App() {
     );
   };
 
-  // Calcula quanto cada serviço deve receber de acréscimo pelas despesas extras
-  const calcularAcrescimoPorItem = () => {
-    const totalDespesas = despesasExtras.reduce((acc, d) => acc + d.valor, 0);
-    const totalItens = [
-      ...servicosSelecionados,
-      ...servicosManuais,
-    ].length;
-    return totalItens > 0 ? totalDespesas / totalItens : 0;
-  };
-
-  // Calcular valor total com as despesas extras diluídas
-  const calcularTotal = () => {
-    const acrescimo = calcularAcrescimoPorItem();
+  const calcularSubtotalMaoDeObra = () => {
     const totalServicos = servicosSelecionados.reduce(
-      (acc, s) => acc + s.preco_unitario * s.quantidade + acrescimo,
+      (acc, s) => acc + s.preco_unitario * s.quantidade,
       0
     );
     const totalManuais = servicosManuais.reduce(
-      (acc, s) => acc + s.preco_unitario * s.quantidade + acrescimo,
+      (acc, s) => acc + s.preco_unitario * s.quantidade,
       0
     );
-    return totalServicos + totalManuais;
+    const totalExtras = despesasExtras.reduce((acc, d) => acc + d.valor, 0);
+    return totalServicos + totalManuais + totalExtras;
+  };
+
+  const calcularSubtotalMateriais = () => {
+    return materiais.reduce(
+      (acc, m) => acc + m.preco_unitario * m.quantidade,
+      0
+    );
+  };
+
+  const calcularTotal = () => {
+    return calcularSubtotalMaoDeObra() + calcularSubtotalMateriais();
+  };
+
+  const addWrappedText = (
+    doc,
+    text,
+    x,
+    y,
+    maxWidth = 180,
+    lineHeight = 6
+  ) => {
+    const lines = doc.splitTextToSize(text, maxWidth);
+    doc.text(lines, x, y);
+    return y + lines.length * lineHeight;
+  };
+
+  const addImageWithCaption = (
+    doc,
+    image,
+    caption,
+    x,
+    y,
+    maxWidth = 180,
+    lineHeight = 6
+  ) => {
+    try {
+      const props = doc.getImageProperties(image);
+      const w = maxWidth;
+      const h = (props.height * w) / props.width;
+      if (y + h > 280) {
+        doc.addPage();
+        y = 20;
+      }
+      doc.addImage(image, props.fileType || "JPEG", x, y, w, h);
+      y += h + 4;
+      if (caption) {
+        const lines = doc.splitTextToSize(caption, maxWidth);
+        if (y + lines.length * lineHeight > 280) {
+          doc.addPage();
+          y = 20;
+        }
+        doc.text(lines, x, y);
+        y += lines.length * lineHeight + 4;
+      }
+      return y;
+    } catch (e) {
+      console.error("Erro ao adicionar imagem:", e);
+      return y;
+    }
   };
 
   // Função auxiliar para adicionar a logo em todas as páginas do PDF
@@ -493,87 +606,243 @@ function App() {
       );
       return;
     }
-    const acrescimo = calcularAcrescimoPorItem();
-    const servicosSelecionadosAtualizados = servicosSelecionados.map((s) => ({
-      ...s,
-      preco_unitario: s.preco_unitario + acrescimo / (s.quantidade || 1),
-    }));
-    const servicosManuaisAtualizados = servicosManuais.map((s) => ({
-      ...s,
-      preco_unitario: s.preco_unitario + acrescimo / (s.quantidade || 1),
-    }));
-    const subtotal = calcularTotal();
+    const subtotalMaoDeObra = calcularSubtotalMaoDeObra();
+    const subtotalMateriais = calcularSubtotalMateriais();
+    const subtotal = subtotalMaoDeObra + subtotalMateriais;
     const valorTotal = subtotal * (1 - desconto / 100);
+    const acrescimo = calcularAcrescimoPorItem();
     const orcamento = {
       cliente,
-      servicosSelecionados: servicosSelecionadosAtualizados,
-      servicosManuais: servicosManuaisAtualizados,
+      servicosSelecionados,
+      servicosManuais,
+      materiais,
       observacoesGerais,
       desconto,
+      subtotalMaoDeObra,
+      subtotalMateriais,
       subtotal,
       valorTotal,
+      despesasExtras,
+      acrescimo,
       dataCriacao: new Date().toLocaleDateString("pt-BR"),
+      arquivosObservacoes,
     };
 
     console.log("Orçamento gerado:", orcamento);
 
-    const doc = new jsPDF();
-
-    // Adiciona o conteúdo principal primeiro
-    doc.setFontSize(18);
-    doc.text("Orçamento de Serviços Elétricos", 14, 20);
-    doc.setFontSize(12);
-    doc.text(`Cliente: ${orcamento.cliente.nome}`, 14, 30);
-    doc.text(`Contato: ${orcamento.cliente.contato}`, 14, 37);
+    // Documento de serviços (mão de obra)
+    const docServicos = new jsPDF();
+    docServicos.setFontSize(18);
+    docServicos.text("Orçamento de Serviços Elétricos - Mão de Obra", 14, 20);
+    docServicos.setFontSize(12);
+    let yServ = 30;
+    yServ = addWrappedText(
+      docServicos,
+      `Cliente: ${orcamento.cliente.nome}`,
+      14,
+      yServ
+    );
+    yServ = addWrappedText(
+      docServicos,
+      `Contato: ${orcamento.cliente.contato}`,
+      14,
+      yServ
+    );
     if (orcamento.cliente.endereco) {
-      doc.text(`Endereço: ${orcamento.cliente.endereco}`, 14, 44);
+      yServ = addWrappedText(
+        docServicos,
+        `Endereço: ${orcamento.cliente.endereco}`,
+        14,
+        yServ
+      );
     }
-    doc.text(`Data: ${orcamento.dataCriacao}`, 14, 51);
+    yServ = addWrappedText(
+      docServicos,
+      `Data: ${orcamento.dataCriacao}`,
+      14,
+      yServ
+    );
 
-    // Adiciona a tabela de serviços
-    autoTable(doc, {
-      startY: 60,
+    autoTable(docServicos, {
+      startY: yServ + 10,
       head: [["Serviço", "Qtd", "Descrição", "Valor"]],
       body: [...orcamento.servicosSelecionados, ...orcamento.servicosManuais].map(
         (s) => [
           s.nome,
           s.quantidade,
           s.descricao || "",
-          `R$ ${(s.preco_unitario * s.quantidade).toFixed(2)}`,
+          `R$ ${((s.preco_unitario + acrescimo) * s.quantidade).toFixed(2)}`,
         ]
       ),
     });
+    let finalY = docServicos.lastAutoTable
+      ? docServicos.lastAutoTable.finalY
+      : yServ + 10;
+    docServicos.text(
+      `Subtotal Mão de Obra: R$ ${subtotalMaoDeObra.toFixed(2)}`,
+      14,
+      finalY + 10
+    );
+    finalY += 16;
 
-    let finalY = doc.lastAutoTable ? doc.lastAutoTable.finalY : 60;
-
-    if (orcamento.observacoesGerais) {
-      doc.text(`Observações: ${orcamento.observacoesGerais}`, 14, finalY + 10);
-      finalY += 16;
+    if (observacoesGerais) {
+      const obsText = docServicos.splitTextToSize(
+        `Observações: ${observacoesGerais}`,
+        180
+      );
+      docServicos.text(obsText, 14, finalY + 10);
+      finalY += obsText.length * 10;
     }
 
-    doc.setFontSize(14);
+    if (arquivosObservacoes.length > 0) {
+      let y = finalY + 10;
+      arquivosObservacoes.forEach((arq) => {
+        if (arq.tipo.startsWith("image/")) {
+          y = addImageWithCaption(docServicos, arq.base64, arq.nome, 14, y);
+        } else {
+          const linhasArq = docServicos.splitTextToSize(arq.nome, 180);
+          if (y + linhasArq.length * 6 > 280) {
+            docServicos.addPage();
+            y = 20;
+          }
+          docServicos.text(linhasArq, 14, y);
+          y += linhasArq.length * 6;
+        }
+      });
+      finalY = y;
+    }
+
+    docServicos.setFontSize(14);
+    const totalMaoDeObraComDesconto = subtotalMaoDeObra * (1 - desconto / 100);
     if (desconto > 0) {
-      doc.text(`Subtotal: R$ ${subtotal.toFixed(2)}`, 14, finalY + 20);
-      doc.text(
-        `Desconto (${desconto}%): -R$ ${(subtotal - valorTotal).toFixed(2)}`,
+      docServicos.text(
+        `Subtotal: R$ ${subtotalMaoDeObra.toFixed(2)}`,
+        14,
+        finalY + 20
+      );
+      docServicos.text(
+        `Desconto (${desconto}%): -R$ ${(subtotalMaoDeObra - totalMaoDeObraComDesconto).toFixed(2)}`,
         14,
         finalY + 27
       );
-      doc.text(`Total: R$ ${valorTotal.toFixed(2)}`, 14, finalY + 34);
+      docServicos.text(
+        `Total: R$ ${totalMaoDeObraComDesconto.toFixed(2)}`,
+        14,
+        finalY + 34
+      );
     } else {
-      doc.text(`Total: R$ ${valorTotal.toFixed(2)}`, 14, finalY + 20);
+      docServicos.text(
+        `Total: R$ ${subtotalMaoDeObra.toFixed(2)}`,
+        14,
+        finalY + 20
+      );
     }
 
-    const pdf = doc.output("datauristring");
+    const pdfServicos = docServicos.output("datauristring");
     salvarArquivo(
       orcamento.cliente.nome,
       "orcamentos",
-      pdf,
-      `orcamento-${orcamento.cliente.nome || "cliente"}.pdf`
+      pdfServicos,
+      `orcamento-servicos-${orcamento.cliente.nome || "cliente"}.pdf`
     );
-    await adicionarLogoEmTodasAsPaginas(doc);
-    doc.save(`orcamento-${orcamento.cliente.nome || "cliente"}.pdf`);
-    alert("Orçamento gerado em PDF com sucesso!");
+    await adicionarLogoEmTodasAsPaginas(docServicos);
+    docServicos.save(
+      `orcamento-servicos-${orcamento.cliente.nome || "cliente"}.pdf`
+    );
+
+    // Documento de materiais
+    if (materiais.length > 0) {
+      const docMateriais = new jsPDF();
+      docMateriais.setFontSize(18);
+      docMateriais.text("Orçamento de Materiais", 14, 20);
+      docMateriais.setFontSize(12);
+      let yMat = 30;
+      yMat = addWrappedText(
+        docMateriais,
+        `Cliente: ${orcamento.cliente.nome}`,
+        14,
+        yMat
+      );
+      yMat = addWrappedText(
+        docMateriais,
+        `Contato: ${orcamento.cliente.contato}`,
+        14,
+        yMat
+      );
+      if (orcamento.cliente.endereco) {
+        yMat = addWrappedText(
+          docMateriais,
+          `Endereço: ${orcamento.cliente.endereco}`,
+          14,
+          yMat
+        );
+      }
+      yMat = addWrappedText(
+        docMateriais,
+        `Data: ${orcamento.dataCriacao}`,
+        14,
+        yMat
+      );
+
+      autoTable(docMateriais, {
+        startY: yMat + 10,
+        head: [["Material", "Qtd", "Valor"]],
+        body: materiais.map((m) => [
+          m.descricao,
+          m.quantidade,
+          `R$ ${(m.preco_unitario * m.quantidade).toFixed(2)}`,
+        ]),
+      });
+      let finalYMat = docMateriais.lastAutoTable
+        ? docMateriais.lastAutoTable.finalY
+        : yMat + 10;
+      docMateriais.text(
+        `Subtotal Materiais: R$ ${subtotalMateriais.toFixed(2)}`,
+        14,
+        finalYMat + 10
+      );
+      finalYMat += 16;
+
+      if (observacoesGerais) {
+        const obsTextMat = docMateriais.splitTextToSize(
+          `Observações: ${observacoesGerais}`,
+          180
+        );
+        docMateriais.text(obsTextMat, 14, finalYMat + 10);
+        finalYMat += obsTextMat.length * 10;
+      }
+
+      if (arquivosObservacoes.length > 0) {
+        let y = finalYMat + 10;
+        arquivosObservacoes.forEach((arq) => {
+          if (arq.tipo.startsWith("image/")) {
+            y = addImageWithCaption(docMateriais, arq.base64, arq.nome, 14, y);
+          } else {
+            const linhasArq = docMateriais.splitTextToSize(arq.nome, 180);
+            if (y + linhasArq.length * 6 > 280) {
+              docMateriais.addPage();
+              y = 20;
+            }
+            docMateriais.text(linhasArq, 14, y);
+            y += linhasArq.length * 6;
+          }
+        });
+      }
+
+      const pdfMateriais = docMateriais.output("datauristring");
+      salvarArquivo(
+        orcamento.cliente.nome,
+        "orcamentos",
+        pdfMateriais,
+        `orcamento-materiais-${orcamento.cliente.nome || "cliente"}.pdf`
+      );
+      await adicionarLogoEmTodasAsPaginas(docMateriais);
+      docMateriais.save(
+        `orcamento-materiais-${orcamento.cliente.nome || "cliente"}.pdf`
+      );
+    }
+
+    alert("Orçamentos gerados em PDF com sucesso!");
   };
 
   // Função para gerar relatório
@@ -605,9 +874,20 @@ function App() {
       doc.setFontSize(18);
       doc.text("Relatório de Inspeção", 14, 20);
       doc.setFontSize(12);
-      doc.text(`Cliente: ${cliente.nome}`, 14, 30);
-      doc.text(`Data: ${new Date().toLocaleDateString("pt-BR")}`, 14, 40);
-      let y = 50;
+      let y = 30;
+      y = addWrappedText(
+        doc,
+        `Cliente: ${cliente.nome}`,
+        14,
+        y
+      );
+      y = addWrappedText(
+        doc,
+        `Data: ${new Date().toLocaleDateString("pt-BR")}`,
+        14,
+        y
+      );
+      y += 10;
 
       // Adiciona problemas elétricos se houver
       if (problemasEletricosSelecionados.length > 0) {
@@ -618,27 +898,32 @@ function App() {
         doc.text("Problemas Elétricos:", 14, y);
         y += 6;
         problemasEletricosSelecionados.forEach((p) => {
-          doc.text(`- ${p.problema}`, 16, y);
-          y += 6;
+          const problemaTexto = doc.splitTextToSize(`- ${p.problema}`, 180);
+          if (y + problemaTexto.length * 6 > 280) {
+            doc.addPage();
+            y = 20;
+          }
+          doc.text(problemaTexto, 16, y);
+          y += problemaTexto.length * 6;
           if (p.descricao) {
             const linhas = doc.splitTextToSize(p.descricao, 180);
+            if (y + linhas.length * 6 > 280) {
+              doc.addPage();
+              y = 20;
+            }
             doc.text(linhas, 18, y);
             y += linhas.length * 6;
           }
-          if (p.foto) {
-            try {
-              const props = doc.getImageProperties(p.foto);
-              const w = 180;
-              const h = (props.height * w) / props.width;
-              if (y + h > 280) {
-                doc.addPage();
-                y = 20;
-              }
-              doc.addImage(p.foto, props.fileType || "JPEG", 14, y, w, h);
-              y += h + 4;
-            } catch (error) {
-              console.error("Erro ao adicionar foto do problema:", error);
-            }
+          if (p.fotos && p.fotos.length > 0) {
+            p.fotos.forEach((foto) => {
+              y = addImageWithCaption(
+                doc,
+                foto,
+                p.descricao || p.problema,
+                14,
+                y
+              );
+            });
           }
         });
       }
@@ -652,27 +937,32 @@ function App() {
         doc.text("Outros Problemas:", 14, y);
         y += 6;
         outrosProblemasSelecionados.forEach((p) => {
-          doc.text(`- ${p.problema}`, 16, y);
-          y += 6;
+          const problemaTexto = doc.splitTextToSize(`- ${p.problema}`, 180);
+          if (y + problemaTexto.length * 6 > 280) {
+            doc.addPage();
+            y = 20;
+          }
+          doc.text(problemaTexto, 16, y);
+          y += problemaTexto.length * 6;
           if (p.descricao) {
             const linhas = doc.splitTextToSize(p.descricao, 180);
+            if (y + linhas.length * 6 > 280) {
+              doc.addPage();
+              y = 20;
+            }
             doc.text(linhas, 18, y);
             y += linhas.length * 6;
           }
-          if (p.foto) {
-            try {
-              const props = doc.getImageProperties(p.foto);
-              const w = 180;
-              const h = (props.height * w) / props.width;
-              if (y + h > 280) {
-                doc.addPage();
-                y = 20;
-              }
-              doc.addImage(p.foto, props.fileType || "JPEG", 14, y, w, h);
-              y += h + 4;
-            } catch (error) {
-              console.error("Erro ao adicionar foto do problema:", error);
-            }
+          if (p.fotos && p.fotos.length > 0) {
+            p.fotos.forEach((foto) => {
+              y = addImageWithCaption(
+                doc,
+                foto,
+                p.descricao || p.problema,
+                14,
+                y
+              );
+            });
           }
         });
       }
@@ -698,44 +988,46 @@ function App() {
           const texto = `- ${s.nome} (${s.quantidade} ${unidade})${
             s.descricao ? " - " + s.descricao : ""
           }`;
-          doc.text(texto, 16, y);
-          y += 6;
-          if (s.foto) {
-            try {
-              const props = doc.getImageProperties(s.foto);
-              const w = 180;
-              const h = (props.height * w) / props.width;
-              if (y + h > 280) {
-                doc.addPage();
-                y = 20;
-              }
-              doc.addImage(s.foto, props.fileType || "JPEG", 14, y, w, h);
-              y += h + 4;
-            } catch (error) {
-              console.error("Erro ao adicionar foto do serviço:", error);
-            }
+          const linhasServico = doc.splitTextToSize(texto, 180);
+          if (y + linhasServico.length * 6 > 280) {
+            doc.addPage();
+            y = 20;
+          }
+          doc.text(linhasServico, 16, y);
+          y += linhasServico.length * 6;
+          if (s.fotos && s.fotos.length > 0) {
+            s.fotos.forEach((foto) => {
+              y = addImageWithCaption(
+                doc,
+                foto,
+                s.descricao || s.nome,
+                14,
+                y
+              );
+            });
           }
         });
         servicosRelatorioManuais.forEach((s) => {
           const texto = `- ${s.nome} (${s.quantidade} ${s.unidade || "un"})${
             s.descricao ? " - " + s.descricao : ""
           }`;
-          doc.text(texto, 16, y);
-          y += 6;
-          if (s.foto) {
-            try {
-              const props = doc.getImageProperties(s.foto);
-              const w = 180;
-              const h = (props.height * w) / props.width;
-              if (y + h > 280) {
-                doc.addPage();
-                y = 20;
-              }
-              doc.addImage(s.foto, props.fileType || "JPEG", 14, y, w, h);
-              y += h + 4;
-            } catch (error) {
-              console.error("Erro ao adicionar foto do serviço manual:", error);
-            }
+          const linhasServico = doc.splitTextToSize(texto, 180);
+          if (y + linhasServico.length * 6 > 280) {
+            doc.addPage();
+            y = 20;
+          }
+          doc.text(linhasServico, 16, y);
+          y += linhasServico.length * 6;
+          if (s.fotos && s.fotos.length > 0) {
+            s.fotos.forEach((foto) => {
+              y = addImageWithCaption(
+                doc,
+                foto,
+                s.descricao || s.nome,
+                14,
+                y
+              );
+            });
           }
         });
       }
@@ -746,6 +1038,10 @@ function App() {
         doc.text("Observações:", 14, y);
         y += 6;
         const linhas = doc.splitTextToSize(descricaoRelatorio, 180);
+        if (y + linhas.length * 6 > 280) {
+          doc.addPage();
+          y = 20;
+        }
         doc.text(linhas, 16, y);
         y += linhas.length * 6 + 4;
       }
@@ -754,28 +1050,7 @@ function App() {
       if (fotosRelatorio.length > 0) {
         console.log("Adicionando fotos do relatório:", fotosRelatorio.length);
         fotosRelatorio.forEach((foto) => {
-          try {
-            const props = doc.getImageProperties(foto.src);
-            const w = 180;
-            const h = (props.height * w) / props.width;
-            if (y + h > 280) {
-              doc.addPage();
-              y = 20;
-            }
-            doc.addImage(foto.src, props.fileType || "JPEG", 14, y, w, h);
-            y += h + 4;
-            if (foto.descricao) {
-              const texto = doc.splitTextToSize(foto.descricao, 180);
-              if (y + texto.length * 6 > 280) {
-                doc.addPage();
-                y = 20;
-              }
-              doc.text(texto, 14, y);
-              y += texto.length * 6 + 4;
-            }
-          } catch (error) {
-            console.error("Erro ao adicionar foto do relatório:", error);
-          }
+          y = addImageWithCaption(doc, foto.src, foto.descricao, 14, y);
         });
       }
 
@@ -806,8 +1081,12 @@ function App() {
     setCliente({ nome: "", contato: "", endereco: "" });
     setServicosSelecionados([]);
     setServicosManuais([]);
-    setDespesasExtras([]);
+    setMateriais([]);
+    setNovoMaterial({ descricao: "", quantidade: "", preco_unitario: "" });
     setObservacoesGerais("");
+    setDespesasExtras([]);
+    setNovaDespesa({ descricao: "", valor: "" });
+    setArquivosObservacoes([]);
     setDesconto(0);
     setServicosRelatorioSelecionados([]);
     setServicosRelatorioManuais([]);
@@ -816,7 +1095,7 @@ function App() {
       descricao: "",
       quantidade: "",
       unidade: "un",
-      foto: "",
+      fotos: [],
     });
     setProblemasEletricosSelecionados([]);
     setOutrosProblemasSelecionados([]);
@@ -825,16 +1104,23 @@ function App() {
     setCurrentTab("cliente");
   };
 
+  const acrescimoPorItem = calcularAcrescimoPorItem();
   const arquivosFiltrados = Object.entries(arquivos).filter(([nome]) =>
     nome.toLowerCase().includes(buscaArquivo.toLowerCase())
   );
-
-  const acrescimo = calcularAcrescimoPorItem();
 
   return (
     <div className="relative min-h-screen bg-gray-50 p-4 overflow-hidden">
       <ElectricBackground />
       <div className="relative z-10 max-w-4xl mx-auto">
+
+    <div className="relative min-h-screen p-4 overflow-hidden">
+      <ElectricBackground />
+
+      <div className="relative z-10 max-w-4xl mx-auto">
+
+      <div className="max-w-4xl mx-auto">
+ 
         <div className="text-center mb-8">
           <div className="flex flex-col items-center justify-center gap-2 mb-4">
             <img
@@ -848,12 +1134,12 @@ function App() {
                 background: "transparent",
               }}
             />
-            <h1 className="text-3xl font-bold text-gray-900">
-              Orçamento Elétrico
+            <h1 className="text-3xl font-bold text-white">
+              Orçamento Elétrico e Relatório
             </h1>
           </div>
-          <p className="text-gray-600">
-            Sistema para geração de orçamentos de serviços elétricos
+          <p className="text-white">
+            Sistema para geração de orçamentos de serviços elétricos e relatórios
           </p>
         </div>
 
@@ -959,6 +1245,7 @@ function App() {
                 </Button>
               </CardContent>
             </Card>
+
           </TabsContent>
 
           {/* Aba Serviços */}
@@ -1231,70 +1518,158 @@ function App() {
                   </div>
                 )}
               </CardContent>
-            </Card>
+              </Card>
 
-            {/* Despesas Extras */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Despesas Extras</CardTitle>
-                <CardDescription>
-                  Adicione despesas como combustível, deslocamento, etc.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="descricao-despesa">Descrição</Label>
-                    <Input
-                      id="descricao-despesa"
-                      value={novaDespesa.descricao}
-                      onChange={(e) =>
-                        setNovaDespesa({
-                          ...novaDespesa,
-                          descricao: e.target.value,
-                        })
-                      }
-                      placeholder="Ex: Combustível, Deslocamento"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="valor-despesa">Valor</Label>
-                    <div className="flex gap-2">
+              {/* Despesas Extras */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Despesas Extras</CardTitle>
+                  <CardDescription>
+                    Custos adicionais como deslocamento e combustível
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <Label htmlFor="descricao-despesa">Descrição</Label>
                       <Input
-                        id="valor-despesa"
-                        type="number"
-                        step="0.01"
-                        value={novaDespesa.valor}
+                        id="descricao-despesa"
+                        value={novaDespesa.descricao}
                         onChange={(e) =>
                           setNovaDespesa({
                             ...novaDespesa,
-                            valor: e.target.value,
+                            descricao: e.target.value,
+                          })
+                        }
+                        placeholder="Ex: Deslocamento"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="valor-despesa">Valor</Label>
+                      <div className="flex gap-2">
+                        <Input
+                          id="valor-despesa"
+                          type="number"
+                          step="0.01"
+                          value={novaDespesa.valor}
+                          onChange={(e) =>
+                            setNovaDespesa({
+                              ...novaDespesa,
+                              valor: e.target.value,
+                            })
+                          }
+                          placeholder="0.00"
+                        />
+                        <Button onClick={adicionarDespesaExtra} size="sm">
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {despesasExtras.length > 0 && (
+                    <div className="space-y-2">
+                      <h4 className="font-medium">Despesas Adicionadas:</h4>
+                      {despesasExtras.map((d) => (
+                        <div
+                          key={d.id}
+                          className="flex justify-between items-center p-3 border rounded"
+                        >
+                          <span>{d.descricao}</span>
+                          <div className="flex items-center gap-2">
+                            <Badge>R$ {d.valor.toFixed(2)}</Badge>
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => removerDespesaExtra(d.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Materiais */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Materiais</CardTitle>
+                <CardDescription>
+                  Adicione materiais necessários para o serviço
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <Label htmlFor="descricao-material">Descrição</Label>
+                    <Input
+                      id="descricao-material"
+                      value={novoMaterial.descricao}
+                      onChange={(e) =>
+                        setNovoMaterial({
+                          ...novoMaterial,
+                          descricao: e.target.value,
+                        })
+                      }
+                      placeholder="Ex: Fio 2,5mm"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="quantidade-material">Quantidade</Label>
+                    <Input
+                      id="quantidade-material"
+                      type="number"
+                      value={novoMaterial.quantidade}
+                      onChange={(e) =>
+                        setNovoMaterial({
+                          ...novoMaterial,
+                          quantidade: e.target.value,
+                        })
+                      }
+                      placeholder="0"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="valor-material">Valor unitário</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        id="valor-material"
+                        type="number"
+                        step="0.01"
+                        value={novoMaterial.preco_unitario}
+                        onChange={(e) =>
+                          setNovoMaterial({
+                            ...novoMaterial,
+                            preco_unitario: e.target.value,
                           })
                         }
                         placeholder="0.00"
                       />
-                      <Button onClick={adicionarDespesaExtra} size="sm">
+                      <Button onClick={adicionarMaterial} size="sm">
                         <Plus className="h-4 w-4" />
                       </Button>
                     </div>
                   </div>
                 </div>
 
-                {despesasExtras.length > 0 && (
+                {materiais.length > 0 && (
                   <div className="space-y-2">
-                    <h4 className="font-medium">Despesas Adicionadas:</h4>
-                    {despesasExtras.map((despesa) => (
+                    <h4 className="font-medium">Materiais Adicionados:</h4>
+                    {materiais.map((material) => (
                       <div
-                        key={despesa.id}
+                        key={material.id}
                         className="flex justify-between items-center p-3 border rounded"
                       >
-                        <span>{despesa.descricao}</span>
+                        <span>{material.descricao}</span>
                         <div className="flex items-center gap-2">
-                          <Badge>R$ {despesa.valor.toFixed(2)}</Badge>
+                          <Badge>{`${material.quantidade} x R$ ${material.preco_unitario.toFixed(2)} = R$ ${(material.quantidade * material.preco_unitario).toFixed(2)}`}</Badge>
                           <Button
                             variant="destructive"
                             size="sm"
-                            onClick={() => removerDespesaExtra(despesa.id)}
+                            onClick={() => removerMaterial(material.id)}
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -1321,6 +1696,45 @@ function App() {
                   placeholder="Observações gerais sobre o orçamento..."
                   rows={4}
                 />
+                <div className="mt-4 space-y-2">
+                  <Label htmlFor="arquivos-observacoes">Anexos</Label>
+                  <div className="flex flex-col gap-2">
+                    <Input
+                      id="arquivos-observacoes"
+                      type="file"
+                      multiple
+                      onChange={handleUploadObservacoes}
+                    />
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      multiple
+                      onChange={handleUploadObservacoes}
+                    />
+                  </div>
+                  {arquivosObservacoes.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {arquivosObservacoes.map((arq) =>
+                        arq.tipo.startsWith("image/") ? (
+                          <img
+                            key={arq.id}
+                            src={arq.base64}
+                            alt={arq.nome}
+                            className="w-20 h-20 object-cover rounded"
+                          />
+                        ) : (
+                          <span
+                            key={arq.id}
+                            className="text-sm text-blue-600 underline"
+                          >
+                            {arq.nome}
+                          </span>
+                        )
+                      )}
+                    </div>
+                  )}
+                </div>
               </CardContent>
             </Card>
 
@@ -1378,8 +1792,7 @@ function App() {
                     <div className="space-y-2">
                       {servicosSelecionados.map((servico) => {
                         const precoFinal =
-                          servico.preco_unitario +
-                          acrescimo / (servico.quantidade || 1);
+                          servico.preco_unitario + acrescimoPorItem;
                         return (
                           <div
                             key={servico.id}
@@ -1423,8 +1836,7 @@ function App() {
                     <div className="space-y-2">
                       {servicosManuais.map((servico) => {
                         const precoFinal =
-                          servico.preco_unitario +
-                          acrescimo / (servico.quantidade || 1);
+                          servico.preco_unitario + acrescimoPorItem;
                         return (
                           <div
                             key={servico.id}
@@ -1450,6 +1862,44 @@ function App() {
                   </div>
                 )}
 
+                {/* Materiais */}
+                {materiais.length > 0 && (
+                  <div>
+                    <h3 className="font-semibold mb-3">Materiais:</h3>
+                    <div className="space-y-2">
+                      {materiais.map((material) => (
+                        <div
+                          key={material.id}
+                          className="flex justify-between items-start p-3 border rounded"
+                        >
+                          <div className="flex-1">
+                            <p className="font-medium">{material.descricao}</p>
+                          </div>
+                          <Badge>{`${material.quantidade} x R$ ${material.preco_unitario.toFixed(2)} = R$ ${(material.quantidade * material.preco_unitario).toFixed(2)}`}</Badge>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Despesas Extras */}
+                {despesasExtras.length > 0 && (
+                  <div>
+                    <h3 className="font-semibold mb-3">Despesas Extras:</h3>
+                    <div className="space-y-2">
+                      {despesasExtras.map((d) => (
+                        <div
+                          key={d.id}
+                          className="flex justify-between items-center p-3 border rounded"
+                        >
+                          <span>{d.descricao}</span>
+                          <Badge>R$ {d.valor.toFixed(2)}</Badge>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* Observações Gerais */}
                 {observacoesGerais && (
                   <div>
@@ -1457,6 +1907,33 @@ function App() {
                     <p className="text-gray-700 p-3 border rounded bg-gray-50">
                       {observacoesGerais}
                     </p>
+                  </div>
+                )}
+
+                {arquivosObservacoes.length > 0 && (
+                  <div>
+                    <h3 className="font-semibold mb-2">Anexos:</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {arquivosObservacoes.map((arq) =>
+                        arq.tipo.startsWith("image/") ? (
+                          <img
+                            key={arq.id}
+                            src={arq.base64}
+                            alt={arq.nome}
+                            className="w-24 h-24 object-cover rounded"
+                          />
+                        ) : (
+                          <a
+                            key={arq.id}
+                            href={arq.base64}
+                            download={arq.nome}
+                            className="text-blue-600 underline text-sm"
+                          >
+                            {arq.nome}
+                          </a>
+                        )
+                      )}
+                    </div>
                   </div>
                 )}
 
@@ -1476,8 +1953,16 @@ function App() {
                   />
                 </div>
 
-                {/* Total */}
-                <div className="text-right">
+                {/* Totais */}
+                <div className="text-right space-y-1">
+                  <p>
+                    Subtotal Mão de Obra: R$
+                    {calcularSubtotalMaoDeObra().toFixed(2)}
+                  </p>
+                  <p>
+                    Subtotal Materiais: R$
+                    {calcularSubtotalMateriais().toFixed(2)}
+                  </p>
                   <div className="text-2xl font-bold text-green-600">
                     Total: R${" "}
                     {(calcularTotal() * (1 - desconto / 100)).toFixed(2)}
@@ -1501,7 +1986,7 @@ function App() {
                     disabled={!cliente.nome}
                   >
                     <FileText className="h-4 w-4 mr-2" />
-                    Gerar Orçamento
+                    Gerar Orçamentos
                   </Button>
                   <Button variant="outline" onClick={limparFormulario}>
                     Novo Orçamento
@@ -1612,24 +2097,43 @@ function App() {
                                       >
                                         Foto
                                       </Label>
-                                      <Input
-                                        id={`foto-servico-rel-${servico.id}`}
-                                        type="file"
-                                        accept="image/*"
-                                        capture="environment"
-                                        onChange={(e) =>
-                                          adicionarFotoServicoRelatorio(
-                                            servico.id,
-                                            e
-                                          )
-                                        }
-                                      />
-                                      {selecionado.foto && (
-                                        <img
-                                          src={selecionado.foto}
-                                          alt="Evidência"
-                                          className="w-full max-w-xs rounded"
+                                      <div className="flex flex-col gap-2">
+                                        <Input
+                                          id={`foto-servico-rel-${servico.id}`}
+                                          type="file"
+                                          accept="image/*"
+                                          capture="environment"
+                                          multiple
+                                          onChange={(e) =>
+                                            adicionarFotoServicoRelatorio(
+                                              servico.id,
+                                              e
+                                            )
+                                          }
                                         />
+                                        <Input
+                                          type="file"
+                                          accept="image/*"
+                                          multiple
+                                          onChange={(e) =>
+                                            adicionarFotoServicoRelatorio(
+                                              servico.id,
+                                              e
+                                            )
+                                          }
+                                        />
+                                      </div>
+                                      {selecionado.fotos && selecionado.fotos.length > 0 && (
+                                        <div className="flex flex-wrap gap-2">
+                                          {selecionado.fotos.map((foto, idx) => (
+                                            <img
+                                              key={idx}
+                                              src={foto}
+                                              alt="Evidência"
+                                              className="w-full max-w-xs rounded"
+                                            />
+                                          ))}
+                                        </div>
                                       )}
                                     </div>
                                   )}
@@ -1694,21 +2198,36 @@ function App() {
                         })
                       }
                     />
-                    <Label htmlFor="foto-servico-relatorio">Foto</Label>
-                    <Input
-                      id="foto-servico-relatorio"
-                      type="file"
-                      accept="image/*"
-                      capture="environment"
-                      onChange={handleFotoNovoServicoRelatorioManual}
-                    />
-                    {novoServicoRelatorioManual.foto && (
-                      <img
-                        src={novoServicoRelatorioManual.foto}
-                        alt="Pré-visualização"
-                        className="w-full max-w-xs rounded"
+                    <Label htmlFor="foto-servico-relatorio">Fotos</Label>
+                    <div className="flex flex-col gap-2">
+                      <Input
+                        id="foto-servico-relatorio"
+                        type="file"
+                        accept="image/*"
+                        capture="environment"
+                        multiple
+                        onChange={handleFotoNovoServicoRelatorioManual}
                       />
-                    )}
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onChange={handleFotoNovoServicoRelatorioManual}
+                      />
+                    </div>
+                    {novoServicoRelatorioManual.fotos &&
+                      novoServicoRelatorioManual.fotos.length > 0 && (
+                        <div className="flex flex-wrap gap-2">
+                          {novoServicoRelatorioManual.fotos.map((foto, idx) => (
+                            <img
+                              key={idx}
+                              src={foto}
+                              alt="Pré-visualização"
+                              className="w-full max-w-xs rounded"
+                            />
+                          ))}
+                        </div>
+                      )}
                   </div>
                   <Button
                     variant="outline"
@@ -1741,12 +2260,17 @@ function App() {
                               {servico.descricao}
                             </p>
                           )}
-                          {servico.foto && (
-                            <img
-                              src={servico.foto}
-                              alt="Evidência"
-                              className="w-full max-w-xs rounded"
-                            />
+                          {servico.fotos && servico.fotos.length > 0 && (
+                            <div className="flex flex-wrap gap-2">
+                              {servico.fotos.map((foto, idx) => (
+                                <img
+                                  key={idx}
+                                  src={foto}
+                                  alt="Evidência"
+                                  className="w-full max-w-xs rounded"
+                                />
+                              ))}
+                            </div>
                           )}
                         </div>
                       ))}
@@ -1809,25 +2333,46 @@ function App() {
                                     placeholder="Descrição do problema"
                                     rows={2}
                                   />
-                                  <Input
-                                    type="file"
-                                    accept="image/*"
-                                    capture="environment"
-                                    onChange={(e) =>
-                                      adicionarFotoProblema(
-                                        p,
-                                        e,
-                                        problemasEletricosSelecionados,
-                                        setProblemasEletricosSelecionados
-                                      )
-                                    }
-                                  />
-                                  {selecionado.foto && (
-                                    <img
-                                      src={selecionado.foto}
-                                      alt="Evidência"
-                                      className="w-full max-w-xs rounded"
+                                  <div className="flex flex-col gap-2">
+                                    <Input
+                                      type="file"
+                                      accept="image/*"
+                                      capture="environment"
+                                      multiple
+                                      onChange={(e) =>
+                                        adicionarFotoProblema(
+                                          p,
+                                          e,
+                                          problemasEletricosSelecionados,
+                                          setProblemasEletricosSelecionados
+                                        )
+                                      }
                                     />
+                                    <Input
+                                      type="file"
+                                      accept="image/*"
+                                      multiple
+                                      onChange={(e) =>
+                                        adicionarFotoProblema(
+                                          p,
+                                          e,
+                                          problemasEletricosSelecionados,
+                                          setProblemasEletricosSelecionados
+                                        )
+                                      }
+                                    />
+                                  </div>
+                                  {selecionado.fotos && selecionado.fotos.length > 0 && (
+                                    <div className="flex flex-wrap gap-2">
+                                      {selecionado.fotos.map((foto, idx) => (
+                                        <img
+                                          key={idx}
+                                          src={foto}
+                                          alt="Evidência"
+                                          className="w-full max-w-xs rounded"
+                                        />
+                                      ))}
+                                    </div>
                                   )}
                                 </div>
                               )}
@@ -1877,25 +2422,46 @@ function App() {
                                     placeholder="Descrição do problema"
                                     rows={2}
                                   />
-                                  <Input
-                                    type="file"
-                                    accept="image/*"
-                                    capture="environment"
-                                    onChange={(e) =>
-                                      adicionarFotoProblema(
-                                        p,
-                                        e,
-                                        outrosProblemasSelecionados,
-                                        setOutrosProblemasSelecionados
-                                      )
-                                    }
-                                  />
-                                  {selecionado.foto && (
-                                    <img
-                                      src={selecionado.foto}
-                                      alt="Evidência"
-                                      className="w-full max-w-xs rounded"
+                                  <div className="flex flex-col gap-2">
+                                    <Input
+                                      type="file"
+                                      accept="image/*"
+                                      capture="environment"
+                                      multiple
+                                      onChange={(e) =>
+                                        adicionarFotoProblema(
+                                          p,
+                                          e,
+                                          outrosProblemasSelecionados,
+                                          setOutrosProblemasSelecionados
+                                        )
+                                      }
                                     />
+                                    <Input
+                                      type="file"
+                                      accept="image/*"
+                                      multiple
+                                      onChange={(e) =>
+                                        adicionarFotoProblema(
+                                          p,
+                                          e,
+                                          outrosProblemasSelecionados,
+                                          setOutrosProblemasSelecionados
+                                        )
+                                      }
+                                    />
+                                  </div>
+                                  {selecionado.fotos && selecionado.fotos.length > 0 && (
+                                    <div className="flex flex-wrap gap-2">
+                                      {selecionado.fotos.map((foto, idx) => (
+                                        <img
+                                          key={idx}
+                                          src={foto}
+                                          alt="Evidência"
+                                          className="w-full max-w-xs rounded"
+                                        />
+                                      ))}
+                                    </div>
                                   )}
                                 </div>
                               )}
@@ -1928,6 +2494,19 @@ function App() {
                       type="file"
                       accept="image/*"
                       capture="environment"
+                      multiple
+                      onChange={adicionarFotoRelatorio}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="foto-relatorio-galeria">
+                      Selecionar da Galeria
+                    </Label>
+                    <Input
+                      id="foto-relatorio-galeria"
+                      type="file"
+                      accept="image/*"
+                      multiple
                       onChange={adicionarFotoRelatorio}
                     />
                   </div>
@@ -2078,6 +2657,7 @@ function App() {
           </TabsContent>
         </Tabs>
       </div>
+    </div>
     </div>
   );
 }
