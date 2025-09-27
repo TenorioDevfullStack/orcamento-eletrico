@@ -2656,7 +2656,6 @@ function App() {
             )}
           </TabsContent>
         </Tabs>
-      </div>
     </div>
     </div>
   );
