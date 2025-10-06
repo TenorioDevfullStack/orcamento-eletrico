@@ -1161,6 +1161,8 @@ function App() {
                     className="h-16 w-16 object-contain drop-shadow-[0_10px_25px_rgba(16,185,129,0.35)]"
                   />
                 </div>
+                <div className="space-y-2 text-left">
+
                 <div className="space-y-2 text-center sm:text-left">
                   <p className="text-xs font-semibold uppercase tracking-[0.3em] text-emerald-300">
                     Raiz Elétrica
@@ -1634,6 +1636,8 @@ function App() {
                           )}
                         </div>
                         <div className="flex items-center gap-3">
+                          <Badge className="rounded-full border border-emerald-400/20 bg-emerald-500/10 px-3 py-1 text-left text-emerald-200 sm:text-right">
+
                           <Badge className="rounded-full border border-emerald-400/20 bg-emerald-500/10 px-3 py-1 text-emerald-200">
                             {`${servico.quantidade} x R$ ${servico.preco_unitario.toFixed(
                               2
@@ -1714,7 +1718,7 @@ function App() {
                         >
                           <span className="text-sm text-slate-200">{d.descricao}</span>
                           <div className="flex items-center gap-3">
-                            <Badge className="rounded-full border border-emerald-400/20 bg-emerald-500/10 px-3 py-1 text-emerald-200">
+                            <Badge className="rounded-full border border-emerald-400/20 bg-emerald-500/10 px-3 py-1 text-left text-emerald-200 sm:text-right">
                               R$ {d.valor.toFixed(2)}
                             </Badge>
                             <Button
@@ -1807,7 +1811,7 @@ function App() {
                       >
                         <span className="text-sm text-slate-200">{material.descricao}</span>
                         <div className="flex items-center gap-3">
-                          <Badge className="rounded-full border border-emerald-400/20 bg-emerald-500/10 px-3 py-1 text-emerald-200">
+                          <Badge className="rounded-full border border-emerald-400/20 bg-emerald-500/10 px-3 py-1 text-left text-emerald-200 sm:text-right">
                             {`${material.quantidade} x R$ ${material.preco_unitario.toFixed(2)} = R$ ${(material.quantidade * material.preco_unitario).toFixed(2)}`}
                           </Badge>
                           <Button
@@ -1961,7 +1965,7 @@ function App() {
                                 </p>
                               )}
                             </div>
-                            <Badge className="rounded-full border border-emerald-400/20 bg-emerald-500/10 px-3 py-1 text-center text-emerald-200">
+                            <Badge className="rounded-full border border-emerald-400/20 bg-emerald-500/10 px-3 py-1 text-left text-emerald-200 sm:text-right">
                               {servico.categoria === "Laudos"
                                 ? `${servico.quantidade} m² x R$ ${precoFinal.toFixed(2)} = R$ ${(precoFinal * servico.quantidade).toFixed(2)}`
                                 : `${servico.quantidade}x R$ ${precoFinal.toFixed(2)} = R$ ${(precoFinal * servico.quantidade).toFixed(2)}`}
@@ -1998,7 +2002,7 @@ function App() {
                                 </p>
                               )}
                             </div>
-                            <Badge className="rounded-full border border-emerald-400/20 bg-emerald-500/10 px-3 py-1 text-emerald-200">
+                            <Badge className="rounded-full border border-emerald-400/20 bg-emerald-500/10 px-3 py-1 text-left text-emerald-200 sm:text-right">
                               {`${servico.quantidade} x R$ ${precoFinal.toFixed(2)} = R$ ${(servico.quantidade * precoFinal).toFixed(2)}`}
                             </Badge>
                           </div>
@@ -2023,7 +2027,7 @@ function App() {
                           <div className="flex-1 text-sm text-slate-200">
                             <p className="font-semibold text-white">{material.descricao}</p>
                           </div>
-                          <Badge className="rounded-full border border-emerald-400/20 bg-emerald-500/10 px-3 py-1 text-emerald-200">
+                          <Badge className="rounded-full border border-emerald-400/20 bg-emerald-500/10 px-3 py-1 text-left text-emerald-200 sm:text-right">
                             {`${material.quantidade} x R$ ${material.preco_unitario.toFixed(2)} = R$ ${(material.quantidade * material.preco_unitario).toFixed(2)}`}
                           </Badge>
                         </div>
@@ -2045,7 +2049,7 @@ function App() {
                           className="flex flex-col gap-3 rounded-xl border border-white/10 bg-slate-900/80 p-4 sm:flex-row sm:items-center sm:justify-between"
                         >
                           <span className="text-sm text-slate-200">{d.descricao}</span>
-                          <Badge className="rounded-full border border-emerald-400/20 bg-emerald-500/10 px-3 py-1 text-emerald-200">
+                          <Badge className="rounded-full border border-emerald-400/20 bg-emerald-500/10 px-3 py-1 text-left text-emerald-200 sm:text-right">
                             R$ {d.valor.toFixed(2)}
                           </Badge>
                         </div>
