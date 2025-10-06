@@ -43,50 +43,37 @@ import { problemasEletricos, outrosProblemas } from "./data/problems.js";
 import "./App.css";
 import ElectricBackground from "@/components/electric-background.jsx";
 
+const isBrowser = typeof window !== "undefined";
+
 function App() {
   // Utilitário para carregar imagem como base64
-  const getBase64Logo = () => {
-    return new Promise((resolve) => {
-      try {
-        console.log("Tentando carregar logo...");
-        // Usando o caminho relativo para a imagem no diretório public
-        const logoPath = "/logo-raizeletrica-atualizada-sem-fundo.png";
-        console.log("Caminho da logo:", logoPath);
+  const getBase64Logo = async () => {
+    if (
+      !isBrowser ||
+      typeof fetch !== "function" ||
+      typeof FileReader === "undefined"
+    ) {
+      return null;
+    }
 
-        fetch(logoPath)
-          .then((response) => {
-            console.log(
-              "Resposta do fetch:",
-              response.status,
-              response.statusText
-            );
-            if (!response.ok) {
-              throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.blob();
-          })
-          .then((blob) => {
-            console.log("Blob criado:", blob.size, "bytes");
-            const reader = new FileReader();
-            reader.onloadend = () => {
-              console.log("Logo convertida para base64");
-              resolve(reader.result);
-            };
-            reader.onerror = () => {
-              console.error("Erro ao ler a imagem");
-              resolve(null);
-            };
-            reader.readAsDataURL(blob);
-          })
-          .catch((error) => {
-            console.error("Erro ao carregar a logo:", error);
-            resolve(null);
-          });
-      } catch (error) {
-        console.error("Erro no getBase64Logo:", error);
-        resolve(null);
+    try {
+      const response = await fetch(logoRaizEletrica);
+      if (!response.ok) {
+        throw new Error(`Erro ao carregar logo: ${response.status}`);
       }
-    });
+
+      const blob = await response.blob();
+
+      return await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.onerror = () => resolve(null);
+        reader.readAsDataURL(blob);
+      });
+    } catch (error) {
+      console.error("Não foi possível carregar a logo: ", error);
+      return null;
+    }
   };
   // Estados principais
   const [currentTab, setCurrentTab] = useState("cliente");
@@ -135,16 +122,25 @@ function App() {
   const [desconto, setDesconto] = useState(0);
 
   const [arquivos, setArquivos] = useState(() => {
-    const saved = localStorage.getItem("arquivos");
-    if (!saved) return {};
-    const parsed = JSON.parse(saved);
-    Object.keys(parsed).forEach((key) => {
-      const entry = parsed[key] || {};
-      if (!Array.isArray(entry.orcamentos)) entry.orcamentos = [];
-      if (!Array.isArray(entry.relatorios)) entry.relatorios = [];
-      parsed[key] = entry;
-    });
-    return parsed;
+    if (!isBrowser) {
+      return {};
+    }
+
+    try {
+      const saved = window.localStorage.getItem("arquivos");
+      if (!saved) return {};
+      const parsed = JSON.parse(saved);
+      Object.keys(parsed).forEach((key) => {
+        const entry = parsed[key] || {};
+        if (!Array.isArray(entry.orcamentos)) entry.orcamentos = [];
+        if (!Array.isArray(entry.relatorios)) entry.relatorios = [];
+        parsed[key] = entry;
+      });
+      return parsed;
+    } catch (error) {
+      console.error("Não foi possível carregar os arquivos salvos:", error);
+      return {};
+    }
   });
   const [buscaArquivo, setBuscaArquivo] = useState("");
 
@@ -169,33 +165,35 @@ function App() {
         nome,
       });
 
-      const persist = () =>
-        localStorage.setItem("arquivos", JSON.stringify(novos));
+      if (isBrowser) {
+        const persist = () =>
+          window.localStorage.setItem("arquivos", JSON.stringify(novos));
 
-      try {
-        persist();
-      } catch (e) {
-        if (e.name === "QuotaExceededError") {
-          console.warn("Armazenamento cheio, removendo arquivos antigos...");
-          while (novos[key][tipo].length > 1) {
-            novos[key][tipo].shift();
+        try {
+          persist();
+        } catch (e) {
+          if (e.name === "QuotaExceededError") {
+            console.warn("Armazenamento cheio, removendo arquivos antigos...");
+            while (novos[key][tipo].length > 1) {
+              novos[key][tipo].shift();
+              try {
+                persist();
+                break;
+              } catch (err) {
+                if (err.name !== "QuotaExceededError") throw err;
+              }
+            }
             try {
               persist();
-              break;
             } catch (err) {
-              if (err.name !== "QuotaExceededError") throw err;
+              console.error(
+                "Não há espaço suficiente no armazenamento para salvar o arquivo",
+                err
+              );
             }
+          } else {
+            console.error("Erro ao salvar arquivo:", e);
           }
-          try {
-            persist();
-          } catch (err) {
-            console.error(
-              "Não há espaço suficiente no armazenamento para salvar o arquivo",
-              err
-            );
-          }
-        } else {
-          console.error("Erro ao salvar arquivo:", e);
         }
       }
       return novos;
@@ -214,7 +212,9 @@ function App() {
       ) {
         delete novos[clienteNome];
       }
-      localStorage.setItem("arquivos", JSON.stringify(novos));
+      if (isBrowser) {
+        window.localStorage.setItem("arquivos", JSON.stringify(novos));
+      }
       return novos;
     });
   };
@@ -2146,6 +2146,15 @@ function App() {
                       <span>Subtotal Materiais</span>
                       <span>{currencyFormatter.format(calcularSubtotalMateriais())}</span>
                     </div>
+                  </div>
+                  <div className="mt-4 flex items-center justify-between rounded-xl border border-emerald-400/40 bg-emerald-500/10 px-4 py-3 text-lg font-semibold text-emerald-200">
+                    <span>Total estimado</span>
+                    <span>
+                      {currencyFormatter.format(
+                        calcularTotal() * (1 - desconto / 100)
+                      )}
+                    </span>
+                  </div>
                   </div>
                   <div className="mt-4 flex items-center justify-between rounded-xl border border-emerald-400/40 bg-emerald-500/10 px-4 py-3 text-lg font-semibold text-emerald-200">
                     <span>Total estimado</span>
