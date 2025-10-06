@@ -1180,6 +1180,8 @@ function App() {
                   />
                 </div>
                 <div className="space-y-2 text-left">
+
+                <div className="space-y-2 text-center sm:text-left">
                   <p className="text-xs font-semibold uppercase tracking-[0.3em] text-emerald-300">
                     Raiz Elétrica
                   </p>
@@ -1653,6 +1655,8 @@ function App() {
                         </div>
                         <div className="flex items-center gap-3">
                           <Badge className="rounded-full border border-emerald-400/20 bg-emerald-500/10 px-3 py-1 text-left text-emerald-200 sm:text-right">
+
+                          <Badge className="rounded-full border border-emerald-400/20 bg-emerald-500/10 px-3 py-1 text-emerald-200">
                             {`${servico.quantidade} x R$ ${servico.preco_unitario.toFixed(
                               2
                             )} = R$ ${(servico.quantidade * servico.preco_unitario).toFixed(2)}`}
