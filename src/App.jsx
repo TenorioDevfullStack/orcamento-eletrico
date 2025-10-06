@@ -281,6 +281,24 @@ function App() {
     }
   };
 
+  const adicionarServico = (servico) => {
+    setServicosSelecionados((prevSelecionados) => {
+      if (prevSelecionados.some((item) => item.id === servico.id)) {
+        return prevSelecionados;
+      }
+
+      return [
+        ...prevSelecionados,
+        {
+          ...servico,
+          preco_unitario: servico.preco_padrao,
+          quantidade: 1,
+          observacoes: "",
+        },
+      ];
+    });
+  };
+
   // Função para atualizar preço de um serviço selecionado
   const atualizarPrecoServico = (id, novoPreco) => {
     setServicosSelecionados(
