@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button.jsx";
 import {
   Card,
@@ -279,6 +279,24 @@ function App() {
         },
       ]);
     }
+  };
+
+  const adicionarServico = (servico) => {
+    setServicosSelecionados((prevSelecionados) => {
+      if (prevSelecionados.some((item) => item.id === servico.id)) {
+        return prevSelecionados;
+      }
+
+      return [
+        ...prevSelecionados,
+        {
+          ...servico,
+          preco_unitario: servico.preco_padrao,
+          quantidade: 1,
+          observacoes: "",
+        },
+      ];
+    });
   };
 
   // Função para atualizar preço de um serviço selecionado
@@ -1108,141 +1126,258 @@ function App() {
   const arquivosFiltrados = Object.entries(arquivos).filter(([nome]) =>
     nome.toLowerCase().includes(buscaArquivo.toLowerCase())
   );
+  const currencyFormatter = useMemo(
+    () =>
+      new Intl.NumberFormat("pt-BR", {
+        style: "currency",
+        currency: "BRL",
+        maximumFractionDigits: 2,
+      }),
+    []
+  );
+  const totalServicosSelecionadosCount =
+    servicosSelecionados.length + servicosManuais.length;
+  const totalComplementosCount = materiais.length + despesasExtras.length;
+  const totalProblemasSelecionados =
+    problemasEletricosSelecionados.length +
+    outrosProblemasSelecionados.length;
+  const totalArquivosSalvos = Object.values(arquivos).reduce(
+    (total, atual) => {
+      const orcamentosSalvos = Array.isArray(atual?.orcamentos)
+        ? atual.orcamentos.length
+        : 0;
+      const relatoriosSalvos = Array.isArray(atual?.relatorios)
+        ? atual.relatorios.length
+        : 0;
+      return total + orcamentosSalvos + relatoriosSalvos;
+    },
+    0
+  );
+  const totalEstimadoComDesconto =
+    calcularTotal() * (1 - (Number(desconto) || 0) / 100);
 
   return (
-    <div className="relative min-h-screen bg-gray-50 p-4 overflow-hidden">
+    <div className="relative min-h-screen overflow-hidden bg-slate-950 text-slate-100">
       <ElectricBackground />
-      <div className="relative z-10 max-w-4xl mx-auto">
-        <div className="text-center mb-8">
-          <div className="flex flex-col items-center justify-center gap-2 mb-4">
-            <img
-              src={logoRaizEletrica}
-              alt="Logo Raiz Elétrica"
-              style={{
-                height: "300px",
-                width: "auto",
-                marginBottom: "8px",
-                objectFit: "contain",
-                background: "transparent",
-              }}
-            />
-            <h1 className="text-3xl font-bold text-white">
-              Orçamento Elétrico e Relatório
-            </h1>
-          </div>
-          <p className="text-white">
-            Sistema para geração de orçamentos de serviços elétricos e relatórios
-          </p>
-        </div>
-
-        <Tabs
-          value={currentTab}
-          onValueChange={setCurrentTab}
-          className="w-full"
-        >
-          <TabsList className="flex flex-wrap w-full h-auto gap-2">
-            <TabsTrigger
-              value="cliente"
-              className="flex items-center gap-2 text-xs sm:text-sm whitespace-normal"
-            >
-              <User className="h-4 w-4" />
-              Cliente
-            </TabsTrigger>
-            <TabsTrigger
-              value="servicos"
-              className="flex items-center gap-2 text-xs sm:text-sm whitespace-normal"
-            >
-              <Zap className="h-4 w-4" />
-              Serviços
-            </TabsTrigger>
-            <TabsTrigger
-              value="extras"
-              className="flex items-center gap-2 text-xs sm:text-sm whitespace-normal"
-            >
-              <Plus className="h-4 w-4" />
-              Extras
-            </TabsTrigger>
-            <TabsTrigger
-              value="orcamento"
-              className="flex items-center gap-2 text-xs sm:text-sm whitespace-normal"
-            >
-              <Calculator className="h-4 w-4" />
-              Orçamento
-            </TabsTrigger>
-            <TabsTrigger
-              value="relatorio"
-              className="flex items-center gap-2 text-xs sm:text-sm whitespace-normal"
-            >
-              <Camera className="h-4 w-4" />
-              Relatório
-            </TabsTrigger>
-            <TabsTrigger
-              value="arquivos"
-              className="flex items-center gap-2 text-xs sm:text-sm whitespace-normal"
-            >
-              <Folder className="h-4 w-4" />
-              Arquivos
-            </TabsTrigger>
-          </TabsList>
-
-          {/* Aba Cliente */}
-          <TabsContent value="cliente" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Dados do Cliente</CardTitle>
-                <CardDescription>
-                  Informe os dados do cliente para o orçamento
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label htmlFor="nome">Nome *</Label>
-                  <Input
-                    id="nome"
-                    value={cliente.nome}
-                    onChange={(e) =>
-                      setCliente({ ...cliente, nome: e.target.value })
-                    }
-                    placeholder="Nome do cliente"
+      <div
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.2),_transparent_60%)]"
+        aria-hidden="true"
+      />
+      <div
+        className="pointer-events-none absolute inset-0 bg-gradient-to-br from-emerald-900/40 via-slate-950/60 to-amber-600/20"
+        aria-hidden="true"
+      />
+      <div className="relative z-10 flex min-h-screen flex-col">
+        <header className="border-b border-white/10 bg-slate-950/70 backdrop-blur">
+          <div className="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+            <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+                <div className="flex h-20 w-20 items-center justify-center rounded-2xl border border-white/20 bg-white/5 shadow-xl shadow-emerald-500/20 ring-1 ring-emerald-400/40">
+                  <img
+                    src={logoRaizEletrica}
+                    alt="Logo Raiz Elétrica"
+                    className="h-16 w-16 object-contain drop-shadow-[0_10px_25px_rgba(16,185,129,0.35)]"
                   />
                 </div>
-                <div>
-                  <Label htmlFor="contato">Contato</Label>
-                  <Input
-                    id="contato"
-                    value={cliente.contato}
-                    onChange={(e) =>
-                      setCliente({ ...cliente, contato: e.target.value })
-                    }
-                    placeholder="Telefone ou email"
-                  />
+                <div className="space-y-2 text-left">
+                  <p className="text-xs font-semibold uppercase tracking-[0.3em] text-emerald-300">
+                    Raiz Elétrica
+                  </p>
+                  <h1 className="text-3xl font-bold leading-tight text-white sm:text-4xl">
+                    Orçamento Elétrico e Relatório
+                  </h1>
+                  <p className="max-w-2xl text-sm text-slate-300 sm:text-base">
+                    Sistema completo para geração de orçamentos, relatórios técnicos e organização de arquivos eletrônicos.
+                  </p>
                 </div>
-                <div>
-                  <Label htmlFor="endereco">Endereço</Label>
-                  <Input
-                    id="endereco"
-                    value={cliente.endereco}
-                    onChange={(e) =>
-                      setCliente({ ...cliente, endereco: e.target.value })
-                    }
-                    placeholder="Endereço do cliente"
-                  />
-                </div>
+              </div>
+              <div className="flex items-center justify-center">
                 <Button
-                  onClick={() => setCurrentTab("servicos")}
-                  disabled={!cliente.nome}
-                  className="w-full"
+                  variant="secondary"
+                  size="lg"
+                  className="min-w-[200px] rounded-xl border border-white/10 bg-white/10 text-white shadow-lg shadow-emerald-500/20 transition-all duration-200 hover:-translate-y-0.5 hover:bg-white/20"
+                  onClick={() => setCurrentTab("orcamento")}
                 >
-                  Próximo: Selecionar Serviços
+                  <Calculator className="h-5 w-5" />
+                  Ir para Orçamento
                 </Button>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
+            <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="rounded-2xl border border-white/10 bg-slate-900/60 p-4 shadow-lg shadow-emerald-500/10 backdrop-blur">
+                <p className="text-sm text-slate-300">Serviços selecionados</p>
+                <p className="mt-2 text-2xl font-semibold text-white">
+                  {totalServicosSelecionadosCount}
+                </p>
+                <p className="mt-1 text-xs text-slate-400">inclui cadastros manuais</p>
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-slate-900/60 p-4 shadow-lg shadow-emerald-500/10 backdrop-blur">
+                <p className="text-sm text-slate-300">Estimativa com desconto</p>
+                <p className="mt-2 text-2xl font-semibold text-emerald-300">
+                  {currencyFormatter.format(totalEstimadoComDesconto || 0)}
+                </p>
+                <p className="mt-1 text-xs text-slate-400">considerando materiais e mão de obra</p>
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-slate-900/60 p-4 shadow-lg shadow-emerald-500/10 backdrop-blur">
+                <p className="text-sm text-slate-300">Itens complementares</p>
+                <p className="mt-2 text-2xl font-semibold text-white">
+                  {totalComplementosCount}
+                </p>
+                <p className="mt-1 text-xs text-slate-400">materiais e despesas extras</p>
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-slate-900/60 p-4 shadow-lg shadow-emerald-500/10 backdrop-blur">
+                <p className="text-sm text-slate-300">Arquivos organizados</p>
+                <p className="mt-2 text-2xl font-semibold text-white">
+                  {totalArquivosSalvos}
+                </p>
+                <p className="mt-1 text-xs text-slate-400">
+                  {totalProblemasSelecionados} problemas registrados
+                </p>
+              </div>
+            </div>
+          </div>
+        </header>
 
-          </TabsContent>
+        <main className="flex-1 pb-16">
+          <div className="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+            <Tabs
+              value={currentTab}
+              onValueChange={setCurrentTab}
+              className="grid gap-6 lg:grid-cols-[320px_1fr] xl:grid-cols-[360px_1fr]"
+            >
+              <TabsList className="flex h-auto w-full flex-wrap items-stretch justify-start gap-2 rounded-3xl border border-white/10 bg-slate-900/60 p-2 shadow-xl shadow-emerald-500/10 backdrop-blur lg:sticky lg:top-28 lg:flex-col lg:h-fit lg:max-h-[calc(100vh-12rem)] lg:overflow-y-auto lg:p-4">
+                <TabsTrigger
+                  value="cliente"
+                  className="group flex w-full items-center justify-between gap-3 rounded-2xl border border-transparent px-3 py-3 text-xs font-semibold uppercase tracking-wide text-slate-300 transition-all duration-150 hover:border-emerald-400/40 hover:bg-emerald-500/5 hover:text-white sm:text-sm"
+                >
+                  <span className="flex items-center gap-3">
+                    <User className="h-4 w-4" />
+                    Cliente
+                  </span>
+                  <span className="rounded-full bg-white/10 px-2 py-1 text-[10px] font-medium uppercase tracking-wider text-slate-300 transition group-data-[state=active]:bg-emerald-400/20 group-data-[state=active]:text-emerald-200">
+                    1
+                  </span>
+                </TabsTrigger>
+                <TabsTrigger
+                  value="servicos"
+                  className="group flex w-full items-center justify-between gap-3 rounded-2xl border border-transparent px-3 py-3 text-xs font-semibold uppercase tracking-wide text-slate-300 transition-all duration-150 hover:border-emerald-400/40 hover:bg-emerald-500/5 hover:text-white sm:text-sm"
+                >
+                  <span className="flex items-center gap-3">
+                    <Zap className="h-4 w-4" />
+                    Serviços
+                  </span>
+                  <span className="rounded-full bg-white/10 px-2 py-1 text-[10px] font-medium uppercase tracking-wider text-slate-300 transition group-data-[state=active]:bg-emerald-400/20 group-data-[state=active]:text-emerald-200">
+                    2
+                  </span>
+                </TabsTrigger>
+                <TabsTrigger
+                  value="extras"
+                  className="group flex w-full items-center justify-between gap-3 rounded-2xl border border-transparent px-3 py-3 text-xs font-semibold uppercase tracking-wide text-slate-300 transition-all duration-150 hover:border-emerald-400/40 hover:bg-emerald-500/5 hover:text-white sm:text-sm"
+                >
+                  <span className="flex items-center gap-3">
+                    <Plus className="h-4 w-4" />
+                    Extras
+                  </span>
+                  <span className="rounded-full bg-white/10 px-2 py-1 text-[10px] font-medium uppercase tracking-wider text-slate-300 transition group-data-[state=active]:bg-emerald-400/20 group-data-[state=active]:text-emerald-200">
+                    3
+                  </span>
+                </TabsTrigger>
+                <TabsTrigger
+                  value="orcamento"
+                  className="group flex w-full items-center justify-between gap-3 rounded-2xl border border-transparent px-3 py-3 text-xs font-semibold uppercase tracking-wide text-slate-300 transition-all duration-150 hover:border-emerald-400/40 hover:bg-emerald-500/5 hover:text-white sm:text-sm"
+                >
+                  <span className="flex items-center gap-3">
+                    <Calculator className="h-4 w-4" />
+                    Orçamento
+                  </span>
+                  <span className="rounded-full bg-white/10 px-2 py-1 text-[10px] font-medium uppercase tracking-wider text-slate-300 transition group-data-[state=active]:bg-emerald-400/20 group-data-[state=active]:text-emerald-200">
+                    4
+                  </span>
+                </TabsTrigger>
+                <TabsTrigger
+                  value="relatorio"
+                  className="group flex w-full items-center justify-between gap-3 rounded-2xl border border-transparent px-3 py-3 text-xs font-semibold uppercase tracking-wide text-slate-300 transition-all duration-150 hover:border-emerald-400/40 hover:bg-emerald-500/5 hover:text-white sm:text-sm"
+                >
+                  <span className="flex items-center gap-3">
+                    <Camera className="h-4 w-4" />
+                    Relatório
+                  </span>
+                  <span className="rounded-full bg-white/10 px-2 py-1 text-[10px] font-medium uppercase tracking-wider text-slate-300 transition group-data-[state=active]:bg-emerald-400/20 group-data-[state=active]:text-emerald-200">
+                    5
+                  </span>
+                </TabsTrigger>
+                <TabsTrigger
+                  value="arquivos"
+                  className="group flex w-full items-center justify-between gap-3 rounded-2xl border border-transparent px-3 py-3 text-xs font-semibold uppercase tracking-wide text-slate-300 transition-all duration-150 hover:border-emerald-400/40 hover:bg-emerald-500/5 hover:text-white sm:text-sm"
+                >
+                  <span className="flex items-center gap-3">
+                    <Folder className="h-4 w-4" />
+                    Arquivos
+                  </span>
+                  <span className="rounded-full bg-white/10 px-2 py-1 text-[10px] font-medium uppercase tracking-wider text-slate-300 transition group-data-[state=active]:bg-emerald-400/20 group-data-[state=active]:text-emerald-200">
+                    6
+                  </span>
+                </TabsTrigger>
+              </TabsList>
+
+              {/* Aba Cliente */}
+              <TabsContent value="cliente" className="space-y-6">
+                <Card className="bg-slate-900/70 border-white/10 shadow-xl shadow-emerald-500/10 backdrop-blur">
+                  <CardHeader>
+                    <CardTitle>Dados do Cliente</CardTitle>
+                    <CardDescription>
+                      Informe os dados do cliente para o orçamento
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <Label htmlFor="nome">Nome *</Label>
+                      <Input
+                        id="nome"
+                        value={cliente.nome}
+                        onChange={(e) =>
+                          setCliente({ ...cliente, nome: e.target.value })
+                        }
+                        placeholder="Nome do cliente"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="contato">Contato</Label>
+                      <Input
+                        id="contato"
+                        value={cliente.contato}
+                        onChange={(e) =>
+                          setCliente({ ...cliente, contato: e.target.value })
+                        }
+                        placeholder="Telefone ou email"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="endereco">Endereço</Label>
+                      <Input
+                        id="endereco"
+                        value={cliente.endereco}
+                        onChange={(e) =>
+                          setCliente({ ...cliente, endereco: e.target.value })
+                        }
+                        placeholder="Endereço do cliente"
+                      />
+                    </div>
+                    <Button
+                      onClick={() => setCurrentTab("servicos")}
+                      disabled={!cliente.nome}
+                      className="w-full rounded-lg bg-emerald-500 text-white shadow-lg shadow-emerald-500/30 transition hover:-translate-y-0.5 hover:bg-emerald-500/90"
+                    >
+                      Próximo: Selecionar Serviços
+                    </Button>
+                  </CardContent>
+                </Card>
+
+              </TabsContent>
 
           {/* Aba Serviços */}
-          <TabsContent value="servicos" className="space-y-4">
-            <Card>
+          <TabsContent value="servicos" className="space-y-6">
+            <Card className="bg-slate-900/70 border-white/10 shadow-xl shadow-emerald-500/10 backdrop-blur">
               <CardHeader>
                 <CardTitle>Serviços Disponíveis</CardTitle>
                 <CardDescription>
@@ -1253,7 +1388,7 @@ function App() {
                 <Accordion type="multiple" className="w-full">
                   {categories.map((categoria) => (
                     <AccordionItem key={categoria} value={categoria}>
-                      <AccordionTrigger className="text-lg font-semibold text-blue-600">
+                      <AccordionTrigger className="text-lg font-semibold text-emerald-200">
                         {categoria}
                       </AccordionTrigger>
                       <AccordionContent>
@@ -1267,106 +1402,126 @@ function App() {
                               return (
                                 <div
                                   key={servico.id}
-                                  className="border rounded-lg p-4"
+                                  className="rounded-2xl border border-white/5 bg-slate-900/80 p-4 shadow-inner shadow-black/30 transition hover:border-emerald-400/30 hover:shadow-emerald-500/10"
                                 >
-                                  <div className="flex items-start gap-3">
-                                    <Checkbox
-                                      checked={!!selecionado}
-                                      onCheckedChange={() =>
-                                        toggleServico(servico)
-                                      }
-                                    />
-                                    <div className="flex-1">
-                                      <div className="flex justify-between items-start mb-2">
-                                        <div>
-                                          <h4 className="font-medium">
-                                            {servico.nome}
-                                          </h4>
-                                          <p className="text-sm text-gray-600">
-                                            {servico.descricao}
-                                          </p>
+                                  <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                                    <div className="flex items-start gap-3">
+                                      <Checkbox
+                                        checked={!!selecionado}
+                                        onCheckedChange={() =>
+                                          toggleServico(servico)
+                                        }
+                                      />
+                                      <div className="flex-1 space-y-3">
+                                        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                                          <div className="space-y-1">
+                                            <h4 className="text-lg font-semibold text-white">
+                                              {servico.nome}
+                                            </h4>
+                                            <p className="text-sm text-slate-300">
+                                              {servico.descricao}
+                                            </p>
+                                          </div>
+                                          <Badge
+                                            variant="secondary"
+                                            className="rounded-full border border-emerald-400/20 bg-emerald-500/10 text-emerald-200"
+                                          >
+                                            {servico.categoria === "Laudos"
+                                              ? `${currencyFormatter.format(
+                                                  servico.preco_padrao
+                                                )}/m²`
+                                              : currencyFormatter.format(
+                                                  servico.preco_padrao
+                                                )}
+                                          </Badge>
                                         </div>
-                                        <Badge variant="secondary">
-                                          {servico.categoria === "Laudos"
-                                            ? `R$ ${servico.preco_padrao.toFixed(
-                                                2
-                                              )}/m²`
-                                            : `R$ ${servico.preco_padrao.toFixed(
-                                                2
-                                              )}`}
-                                        </Badge>
-                                      </div>
 
-                                      {selecionado && (
-                                        <div className="mt-3 space-y-2">
-                                          <div>
-                                            <Label
-                                              htmlFor={`quantidade-${servico.id}`}
-                                            >
-                                              {servico.categoria === "Laudos"
-                                                ? "Metros²"
-                                                : "Quantidade"}
-                                            </Label>
-                                            <Input
-                                              id={`quantidade-${servico.id}`}
-                                              type="number"
-                                              min="0"
-                                              step={
-                                                servico.categoria === "Laudos"
-                                                  ? "0.01"
-                                                  : "1"
-                                              }
-                                              value={selecionado.quantidade}
-                                              onChange={(e) =>
-                                                atualizarQuantidadeServico(
-                                                  servico.id,
-                                                  e.target.value
-                                                )
-                                              }
-                                              className="w-24"
-                                            />
+                                        {selecionado && (
+                                          <div className="rounded-xl border border-white/5 bg-slate-950/60 p-4">
+                                            <div className="grid gap-4 md:grid-cols-2">
+                                              <div className="space-y-1">
+                                                <Label
+                                                  htmlFor={`quantidade-${servico.id}`}
+                                                >
+                                                  {servico.categoria === "Laudos"
+                                                    ? "Metros²"
+                                                    : "Quantidade"}
+                                                </Label>
+                                                <Input
+                                                  id={`quantidade-${servico.id}`}
+                                                  type="number"
+                                                  min="0"
+                                                  step={
+                                                    servico.categoria === "Laudos"
+                                                      ? "0.01"
+                                                      : "1"
+                                                  }
+                                                  value={selecionado.quantidade}
+                                                  onChange={(e) =>
+                                                    atualizarQuantidadeServico(
+                                                      servico.id,
+                                                      e.target.value
+                                                    )
+                                                  }
+                                                  className="w-full max-w-[6rem] bg-slate-900/80"
+                                                />
+                                              </div>
+                                              <div className="space-y-1">
+                                                <Label
+                                                  htmlFor={`preco-${servico.id}`}
+                                                >
+                                                  Preço para este orçamento
+                                                </Label>
+                                                <Input
+                                                  id={`preco-${servico.id}`}
+                                                  type="number"
+                                                  step="0.01"
+                                                  value={selecionado.preco_unitario}
+                                                  onChange={(e) =>
+                                                    atualizarPrecoServico(
+                                                      servico.id,
+                                                      e.target.value
+                                                    )
+                                                  }
+                                                  className="w-full max-w-[8rem] bg-slate-900/80"
+                                                />
+                                              </div>
+                                              <div className="md:col-span-2">
+                                                <Label
+                                                  htmlFor={`obs-${servico.id}`}
+                                                >
+                                                  Observações
+                                                </Label>
+                                                <Textarea
+                                                  id={`obs-${servico.id}`}
+                                                  value={selecionado.observacoes}
+                                                  onChange={(e) =>
+                                                    atualizarObservacoesServico(
+                                                      servico.id,
+                                                      e.target.value
+                                                    )
+                                                  }
+                                                  placeholder="Observações específicas para este serviço"
+                                                  rows={2}
+                                                />
+                                              </div>
+                                            </div>
                                           </div>
-                                          <div>
-                                            <Label
-                                              htmlFor={`preco-${servico.id}`}
-                                            >
-                                              Preço para este orçamento
-                                            </Label>
-                                            <Input
-                                              id={`preco-${servico.id}`}
-                                              type="number"
-                                              step="0.01"
-                                              value={selecionado.preco_unitario}
-                                              onChange={(e) =>
-                                                atualizarPrecoServico(
-                                                  servico.id,
-                                                  e.target.value
-                                                )
-                                              }
-                                              className="w-32"
-                                            />
-                                          </div>
-                                          <div>
-                                            <Label
-                                              htmlFor={`obs-${servico.id}`}
-                                            >
-                                              Observações
-                                            </Label>
-                                            <Textarea
-                                              id={`obs-${servico.id}`}
-                                              value={selecionado.observacoes}
-                                              onChange={(e) =>
-                                                atualizarObservacoesServico(
-                                                  servico.id,
-                                                  e.target.value
-                                                )
-                                              }
-                                              placeholder="Observações específicas para este serviço"
-                                              rows={2}
-                                            />
-                                          </div>
-                                        </div>
-                                      )}
+                                        )}
+                                      </div>
+                                    </div>
+                                    <div className="flex w-full items-center gap-3 lg:w-auto">
+                                      <span className="rounded-full border border-emerald-400/30 bg-emerald-500/10 px-4 py-1 text-sm font-semibold text-emerald-200">
+                                        {currencyFormatter.format(servico.preco)}
+                                      </span>
+                                      <Button
+                                        size="sm"
+                                        onClick={() => adicionarServico(servico)}
+                                        className="rounded-lg bg-emerald-500 text-white shadow-lg shadow-emerald-500/30 transition hover:-translate-y-0.5 hover:bg-emerald-500/90"
+                                      >
+                                        <Plus className="h-4 w-4" />
+                                        Adicionar
+                                      </Button>
                                     </div>
                                   </div>
                                 </div>
@@ -1378,16 +1533,17 @@ function App() {
                   ))}
                 </Accordion>
 
-                <div className="flex gap-2 mt-6">
+                <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                   <Button
                     variant="outline"
                     onClick={() => setCurrentTab("cliente")}
+                    className="h-11 rounded-lg border-white/30 bg-transparent text-white hover:border-emerald-400/40 hover:bg-emerald-500/10"
                   >
                     Voltar
                   </Button>
                   <Button
                     onClick={() => setCurrentTab("extras")}
-                    className="flex-1"
+                    className="h-11 flex-1 rounded-lg bg-emerald-500 text-white shadow-lg shadow-emerald-500/30 transition hover:-translate-y-0.5 hover:bg-emerald-500/90"
                   >
                     Próximo: Serviços Extras
                   </Button>
@@ -1397,9 +1553,9 @@ function App() {
           </TabsContent>
 
           {/* Aba Extras */}
-          <TabsContent value="extras" className="space-y-4">
+          <TabsContent value="extras" className="space-y-6">
             {/* Serviços Manuais */}
-            <Card>
+            <Card className="bg-slate-900/70 border-white/10 shadow-xl shadow-emerald-500/10 backdrop-blur">
               <CardHeader>
                 <CardTitle>Serviços Adicionais</CardTitle>
                 <CardDescription>
@@ -1476,31 +1632,36 @@ function App() {
                 </div>
 
                 {servicosManuais.length > 0 && (
-                  <div className="space-y-2">
-                    <h4 className="font-medium">Serviços Adicionados:</h4>
+                  <div className="space-y-3">
+                    <h4 className="text-sm font-semibold uppercase tracking-wide text-emerald-200">
+                      Serviços Adicionados
+                    </h4>
                     {servicosManuais.map((servico) => (
                       <div
                         key={servico.id}
-                        className="flex justify-between items-center p-3 border rounded"
+                        className="flex flex-col gap-4 rounded-2xl border border-white/10 bg-slate-950/60 p-4 sm:flex-row sm:items-center sm:justify-between"
                       >
-                        <div>
-                          <span className="font-medium">{servico.nome}</span>
+                        <div className="space-y-1 text-sm text-slate-300">
+                          <span className="text-base font-semibold text-white">
+                            {servico.nome}
+                          </span>
                           {servico.descricao && (
-                            <span className="text-gray-600 ml-2">
-                              - {servico.descricao}
+                            <span className="block text-xs text-slate-400">
+                              {servico.descricao}
                             </span>
                           )}
                         </div>
-                        <div className="flex items-center gap-2">
-                          <Badge>{`${
-                            servico.quantidade
-                          } x R$ ${servico.preco_unitario.toFixed(2)} = R$ ${(
-                            servico.quantidade * servico.preco_unitario
-                          ).toFixed(2)}`}</Badge>
+                        <div className="flex items-center gap-3">
+                          <Badge className="rounded-full border border-emerald-400/20 bg-emerald-500/10 px-3 py-1 text-left text-emerald-200 sm:text-right">
+                            {`${servico.quantidade} x R$ ${servico.preco_unitario.toFixed(
+                              2
+                            )} = R$ ${(servico.quantidade * servico.preco_unitario).toFixed(2)}`}
+                          </Badge>
                           <Button
                             variant="destructive"
                             size="sm"
                             onClick={() => removerServicoManual(servico.id)}
+                            className="rounded-lg"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -1513,7 +1674,7 @@ function App() {
               </Card>
 
               {/* Despesas Extras */}
-              <Card>
+              <Card className="bg-slate-900/70 border-white/10 shadow-xl shadow-emerald-500/10 backdrop-blur">
                 <CardHeader>
                   <CardTitle>Despesas Extras</CardTitle>
                   <CardDescription>
@@ -1560,20 +1721,25 @@ function App() {
                   </div>
 
                   {despesasExtras.length > 0 && (
-                    <div className="space-y-2">
-                      <h4 className="font-medium">Despesas Adicionadas:</h4>
+                    <div className="space-y-3">
+                      <h4 className="text-sm font-semibold uppercase tracking-wide text-emerald-200">
+                        Despesas Adicionadas
+                      </h4>
                       {despesasExtras.map((d) => (
                         <div
                           key={d.id}
-                          className="flex justify-between items-center p-3 border rounded"
+                          className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-slate-950/60 p-4 sm:flex-row sm:items-center sm:justify-between"
                         >
-                          <span>{d.descricao}</span>
-                          <div className="flex items-center gap-2">
-                            <Badge>R$ {d.valor.toFixed(2)}</Badge>
+                          <span className="text-sm text-slate-200">{d.descricao}</span>
+                          <div className="flex items-center gap-3">
+                            <Badge className="rounded-full border border-emerald-400/20 bg-emerald-500/10 px-3 py-1 text-left text-emerald-200 sm:text-right">
+                              R$ {d.valor.toFixed(2)}
+                            </Badge>
                             <Button
                               variant="destructive"
                               size="sm"
                               onClick={() => removerDespesaExtra(d.id)}
+                              className="rounded-lg"
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
@@ -1586,7 +1752,7 @@ function App() {
               </Card>
 
               {/* Materiais */}
-              <Card>
+              <Card className="bg-slate-900/70 border-white/10 shadow-xl shadow-emerald-500/10 backdrop-blur">
                 <CardHeader>
                   <CardTitle>Materiais</CardTitle>
                 <CardDescription>
@@ -1648,20 +1814,25 @@ function App() {
                 </div>
 
                 {materiais.length > 0 && (
-                  <div className="space-y-2">
-                    <h4 className="font-medium">Materiais Adicionados:</h4>
+                  <div className="space-y-3">
+                    <h4 className="text-sm font-semibold uppercase tracking-wide text-emerald-200">
+                      Materiais Adicionados
+                    </h4>
                     {materiais.map((material) => (
                       <div
                         key={material.id}
-                        className="flex justify-between items-center p-3 border rounded"
+                        className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-slate-950/60 p-4 sm:flex-row sm:items-center sm:justify-between"
                       >
-                        <span>{material.descricao}</span>
-                        <div className="flex items-center gap-2">
-                          <Badge>{`${material.quantidade} x R$ ${material.preco_unitario.toFixed(2)} = R$ ${(material.quantidade * material.preco_unitario).toFixed(2)}`}</Badge>
+                        <span className="text-sm text-slate-200">{material.descricao}</span>
+                        <div className="flex items-center gap-3">
+                          <Badge className="rounded-full border border-emerald-400/20 bg-emerald-500/10 px-3 py-1 text-left text-emerald-200 sm:text-right">
+                            {`${material.quantidade} x R$ ${material.preco_unitario.toFixed(2)} = R$ ${(material.quantidade * material.preco_unitario).toFixed(2)}`}
+                          </Badge>
                           <Button
                             variant="destructive"
                             size="sm"
                             onClick={() => removerMaterial(material.id)}
+                            className="rounded-lg"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -1674,7 +1845,7 @@ function App() {
             </Card>
 
             {/* Observações Gerais */}
-            <Card>
+            <Card className="bg-slate-900/70 border-white/10 shadow-xl shadow-emerald-500/10 backdrop-blur">
               <CardHeader>
                 <CardTitle>Observações Gerais</CardTitle>
                 <CardDescription>
@@ -1718,7 +1889,7 @@ function App() {
                         ) : (
                           <span
                             key={arq.id}
-                            className="text-sm text-blue-600 underline"
+                            className="text-sm text-emerald-200 underline"
                           >
                             {arq.nome}
                           </span>
@@ -1730,16 +1901,17 @@ function App() {
               </CardContent>
             </Card>
 
-            <div className="flex gap-2">
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
               <Button
                 variant="outline"
                 onClick={() => setCurrentTab("servicos")}
+                className="h-11 rounded-lg border-white/30 bg-transparent text-white hover:border-emerald-400/40 hover:bg-emerald-500/10"
               >
                 Voltar
               </Button>
               <Button
                 onClick={() => setCurrentTab("orcamento")}
-                className="flex-1"
+                className="h-11 flex-1 rounded-lg bg-emerald-500 text-white shadow-lg shadow-emerald-500/30 transition hover:-translate-y-0.5 hover:bg-emerald-500/90"
               >
                 Finalizar: Ver Orçamento
               </Button>
@@ -1747,8 +1919,8 @@ function App() {
           </TabsContent>
 
           {/* Aba Orçamento */}
-          <TabsContent value="orcamento" className="space-y-4">
-            <Card>
+          <TabsContent value="orcamento" className="space-y-6">
+            <Card className="bg-slate-900/70 border-white/10 shadow-2xl shadow-emerald-500/10 backdrop-blur">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <FileText className="h-5 w-5" />
@@ -1758,61 +1930,59 @@ function App() {
               </CardHeader>
               <CardContent className="space-y-6">
                 {/* Dados do Cliente */}
-                <div>
-                  <h3 className="font-semibold mb-2">Cliente:</h3>
-                  <p>
-                    <strong>Nome:</strong> {cliente.nome}
-                  </p>
-                  <p>
-                    <strong>Contato:</strong> {cliente.contato}
-                  </p>
-                  {cliente.endereco && (
+                <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-4">
+                  <h3 className="text-sm font-semibold uppercase tracking-wide text-emerald-200">
+                    Cliente
+                  </h3>
+                  <div className="mt-3 space-y-1 text-sm text-slate-200">
                     <p>
-                      <strong>Endereço:</strong> {cliente.endereco}
+                      <span className="font-semibold text-white">Nome:</span> {cliente.nome}
                     </p>
-                  )}
+                    <p>
+                      <span className="font-semibold text-white">Contato:</span> {cliente.contato}
+                    </p>
+                    {cliente.endereco && (
+                      <p>
+                        <span className="font-semibold text-white">Endereço:</span> {cliente.endereco}
+                      </p>
+                    )}
+                  </div>
                 </div>
 
                 <Separator />
 
                 {/* Serviços Selecionados */}
                 {servicosSelecionados.length > 0 && (
-                  <div>
-                    <h3 className="font-semibold mb-3">
-                      Serviços Selecionados:
+                  <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-4">
+                    <h3 className="text-sm font-semibold uppercase tracking-wide text-emerald-200">
+                      Serviços Selecionados
                     </h3>
-                    <div className="space-y-2">
+                    <div className="mt-3 space-y-3">
                       {servicosSelecionados.map((servico) => {
                         const precoFinal =
                           servico.preco_unitario + acrescimoPorItem;
                         return (
                           <div
                             key={servico.id}
-                            className="flex justify-between items-start p-3 border rounded"
+                            className="flex flex-col gap-3 rounded-xl border border-white/10 bg-slate-900/80 p-4 sm:flex-row sm:items-start sm:justify-between"
                           >
-                            <div className="flex-1">
-                              <p className="font-medium">{servico.nome}</p>
-                              <p className="text-sm text-gray-600">
+                            <div className="flex-1 space-y-2">
+                              <p className="text-base font-semibold text-white">
+                                {servico.nome}
+                              </p>
+                              <p className="text-sm text-slate-300">
                                 {servico.descricao}
                               </p>
                               {servico.observacoes && (
-                                <p className="text-sm text-blue-600 mt-1">
-                                  Obs: {servico.observacoes}
+                                <p className="text-xs text-emerald-200">
+                                  Observações: {servico.observacoes}
                                 </p>
                               )}
                             </div>
-                            <Badge>
+                            <Badge className="rounded-full border border-emerald-400/20 bg-emerald-500/10 px-3 py-1 text-left text-emerald-200 sm:text-right">
                               {servico.categoria === "Laudos"
-                                ? `${
-                                    servico.quantidade
-                                  } m² x R$ ${precoFinal.toFixed(2)} = R$ ${(
-                                    precoFinal * servico.quantidade
-                                  ).toFixed(2)}`
-                                : `${
-                                    servico.quantidade
-                                  }x R$ ${precoFinal.toFixed(2)} = R$ ${(
-                                    precoFinal * servico.quantidade
-                                  ).toFixed(2)}`}
+                                ? `${servico.quantidade} m² x R$ ${precoFinal.toFixed(2)} = R$ ${(precoFinal * servico.quantidade).toFixed(2)}`
+                                : `${servico.quantidade}x R$ ${precoFinal.toFixed(2)} = R$ ${(precoFinal * servico.quantidade).toFixed(2)}`}
                             </Badge>
                           </div>
                         );
@@ -1823,30 +1993,32 @@ function App() {
 
                 {/* Serviços Manuais */}
                 {servicosManuais.length > 0 && (
-                  <div>
-                    <h3 className="font-semibold mb-3">Serviços Adicionais:</h3>
-                    <div className="space-y-2">
+                  <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-4">
+                    <h3 className="text-sm font-semibold uppercase tracking-wide text-emerald-200">
+                      Serviços Adicionais
+                    </h3>
+                    <div className="mt-3 space-y-3">
                       {servicosManuais.map((servico) => {
                         const precoFinal =
                           servico.preco_unitario + acrescimoPorItem;
                         return (
                           <div
                             key={servico.id}
-                            className="flex justify-between items-start p-3 border rounded"
+                            className="flex flex-col gap-3 rounded-xl border border-white/10 bg-slate-900/80 p-4 sm:flex-row sm:items-start sm:justify-between"
                           >
-                            <div>
-                              <p className="font-medium">{servico.nome}</p>
+                            <div className="space-y-1">
+                              <p className="text-base font-semibold text-white">
+                                {servico.nome}
+                              </p>
                               {servico.descricao && (
-                                <p className="text-sm text-gray-600">
+                                <p className="text-sm text-slate-300">
                                   {servico.descricao}
                                 </p>
                               )}
                             </div>
-                            <Badge>{`${
-                              servico.quantidade
-                            } x R$ ${precoFinal.toFixed(2)} = R$ ${(
-                              servico.quantidade * precoFinal
-                            ).toFixed(2)}`}</Badge>
+                            <Badge className="rounded-full border border-emerald-400/20 bg-emerald-500/10 px-3 py-1 text-left text-emerald-200 sm:text-right">
+                              {`${servico.quantidade} x R$ ${precoFinal.toFixed(2)} = R$ ${(servico.quantidade * precoFinal).toFixed(2)}`}
+                            </Badge>
                           </div>
                         );
                       })}
@@ -1856,18 +2028,22 @@ function App() {
 
                 {/* Materiais */}
                 {materiais.length > 0 && (
-                  <div>
-                    <h3 className="font-semibold mb-3">Materiais:</h3>
-                    <div className="space-y-2">
+                  <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-4">
+                    <h3 className="text-sm font-semibold uppercase tracking-wide text-emerald-200">
+                      Materiais
+                    </h3>
+                    <div className="mt-3 space-y-3">
                       {materiais.map((material) => (
                         <div
                           key={material.id}
-                          className="flex justify-between items-start p-3 border rounded"
+                          className="flex flex-col gap-3 rounded-xl border border-white/10 bg-slate-900/80 p-4 sm:flex-row sm:items-start sm:justify-between"
                         >
-                          <div className="flex-1">
-                            <p className="font-medium">{material.descricao}</p>
+                          <div className="flex-1 text-sm text-slate-200">
+                            <p className="font-semibold text-white">{material.descricao}</p>
                           </div>
-                          <Badge>{`${material.quantidade} x R$ ${material.preco_unitario.toFixed(2)} = R$ ${(material.quantidade * material.preco_unitario).toFixed(2)}`}</Badge>
+                          <Badge className="rounded-full border border-emerald-400/20 bg-emerald-500/10 px-3 py-1 text-left text-emerald-200 sm:text-right">
+                            {`${material.quantidade} x R$ ${material.preco_unitario.toFixed(2)} = R$ ${(material.quantidade * material.preco_unitario).toFixed(2)}`}
+                          </Badge>
                         </div>
                       ))}
                     </div>
@@ -1876,16 +2052,20 @@ function App() {
 
                 {/* Despesas Extras */}
                 {despesasExtras.length > 0 && (
-                  <div>
-                    <h3 className="font-semibold mb-3">Despesas Extras:</h3>
-                    <div className="space-y-2">
+                  <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-4">
+                    <h3 className="text-sm font-semibold uppercase tracking-wide text-emerald-200">
+                      Despesas Extras
+                    </h3>
+                    <div className="mt-3 space-y-3">
                       {despesasExtras.map((d) => (
                         <div
                           key={d.id}
-                          className="flex justify-between items-center p-3 border rounded"
+                          className="flex flex-col gap-3 rounded-xl border border-white/10 bg-slate-900/80 p-4 sm:flex-row sm:items-center sm:justify-between"
                         >
-                          <span>{d.descricao}</span>
-                          <Badge>R$ {d.valor.toFixed(2)}</Badge>
+                          <span className="text-sm text-slate-200">{d.descricao}</span>
+                          <Badge className="rounded-full border border-emerald-400/20 bg-emerald-500/10 px-3 py-1 text-left text-emerald-200 sm:text-right">
+                            R$ {d.valor.toFixed(2)}
+                          </Badge>
                         </div>
                       ))}
                     </div>
@@ -1894,9 +2074,11 @@ function App() {
 
                 {/* Observações Gerais */}
                 {observacoesGerais && (
-                  <div>
-                    <h3 className="font-semibold mb-2">Observações Gerais:</h3>
-                    <p className="text-gray-700 p-3 border rounded bg-gray-50">
+                  <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-4">
+                    <h3 className="text-sm font-semibold uppercase tracking-wide text-emerald-200">
+                      Observações Gerais
+                    </h3>
+                    <p className="mt-3 text-sm text-slate-200">
                       {observacoesGerais}
                     </p>
                   </div>
@@ -1905,21 +2087,21 @@ function App() {
                 {arquivosObservacoes.length > 0 && (
                   <div>
                     <h3 className="font-semibold mb-2">Anexos:</h3>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-3">
                       {arquivosObservacoes.map((arq) =>
                         arq.tipo.startsWith("image/") ? (
                           <img
                             key={arq.id}
                             src={arq.base64}
                             alt={arq.nome}
-                            className="w-24 h-24 object-cover rounded"
+                            className="h-24 w-24 rounded-xl object-cover shadow-inner shadow-black/30"
                           />
                         ) : (
                           <a
                             key={arq.id}
                             href={arq.base64}
                             download={arq.nome}
-                            className="text-blue-600 underline text-sm"
+                            className="text-sm text-emerald-200 underline"
                           >
                             {arq.nome}
                           </a>
@@ -1932,55 +2114,70 @@ function App() {
                 <Separator />
 
                 {/* Desconto */}
-                <div className="flex justify-end items-center gap-2">
-                  <Label htmlFor="desconto">Desconto (%)</Label>
-                  <Input
-                    id="desconto"
-                    type="number"
-                    className="w-24"
-                    value={desconto}
-                    onChange={(e) =>
-                      setDesconto(parseFloat(e.target.value) || 0)
-                    }
-                  />
+                <div className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-slate-950/60 p-4 sm:flex-row sm:items-center sm:justify-end">
+                  <div className="flex items-center gap-3">
+                    <Label htmlFor="desconto" className="text-slate-200">
+                      Desconto (%)
+                    </Label>
+                    <Input
+                      id="desconto"
+                      type="number"
+                      className="w-24 bg-slate-900/80"
+                      value={desconto}
+                      onChange={(e) =>
+                        setDesconto(parseFloat(e.target.value) || 0)
+                      }
+                    />
+                  </div>
                 </div>
 
                 {/* Totais */}
-                <div className="text-right space-y-1">
-                  <p>
-                    Subtotal Mão de Obra: R$
-                    {calcularSubtotalMaoDeObra().toFixed(2)}
-                  </p>
-                  <p>
-                    Subtotal Materiais: R$
-                    {calcularSubtotalMateriais().toFixed(2)}
-                  </p>
-                  <div className="text-2xl font-bold text-green-600">
-                    Total: R${" "}
-                    {(calcularTotal() * (1 - desconto / 100)).toFixed(2)}
+                <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-slate-900/80 via-slate-950/60 to-emerald-900/20 p-6 text-right shadow-inner shadow-emerald-500/10">
+                  <div className="space-y-2 text-sm text-slate-200">
+                    <div className="flex items-center justify-between">
+                      <span>Subtotal Mão de Obra</span>
+                      <span>{currencyFormatter.format(calcularSubtotalMaoDeObra())}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span>Subtotal Materiais</span>
+                      <span>{currencyFormatter.format(calcularSubtotalMateriais())}</span>
+                    </div>
                   </div>
-                  <p className="text-sm text-gray-600">
-                    Data: {new Date().toLocaleDateString("pt-BR")}
+                  <div className="mt-4 flex items-center justify-between rounded-xl border border-emerald-400/40 bg-emerald-500/10 px-4 py-3 text-lg font-semibold text-emerald-200">
+                    <span>Total estimado</span>
+                    <span>
+                      {currencyFormatter.format(
+                        calcularTotal() * (1 - desconto / 100)
+                      )}
+                    </span>
+                  </div>
+                  <p className="mt-3 text-xs uppercase tracking-[0.2em] text-slate-400">
+                    Atualizado em {new Date().toLocaleDateString("pt-BR")}
                   </p>
                 </div>
 
                 {/* Botões de Ação */}
-                <div className="flex gap-2 pt-4">
+                <div className="mt-6 flex flex-col gap-3 pt-2 sm:flex-row sm:flex-wrap sm:justify-end">
                   <Button
                     variant="outline"
                     onClick={() => setCurrentTab("extras")}
+                    className="h-11 rounded-lg border-white/30 bg-transparent text-white hover:border-emerald-400/40 hover:bg-emerald-500/10"
                   >
                     Voltar
                   </Button>
                   <Button
                     onClick={gerarOrcamento}
-                    className="flex-1"
+                    className="h-11 flex-1 rounded-lg bg-emerald-500 text-white shadow-lg shadow-emerald-500/30 transition hover:-translate-y-0.5 hover:bg-emerald-500/90 sm:flex-none sm:px-8"
                     disabled={!cliente.nome}
                   >
-                    <FileText className="h-4 w-4 mr-2" />
+                    <FileText className="mr-2 h-4 w-4" />
                     Gerar Orçamentos
                   </Button>
-                  <Button variant="outline" onClick={limparFormulario}>
+                  <Button
+                    variant="outline"
+                    onClick={limparFormulario}
+                    className="h-11 rounded-lg border-white/30 bg-transparent text-white hover:border-emerald-400/40 hover:bg-emerald-500/10"
+                  >
                     Novo Orçamento
                   </Button>
                 </div>
@@ -1989,8 +2186,8 @@ function App() {
           </TabsContent>
 
           {/* Aba Relatório */}
-          <TabsContent value="relatorio" className="space-y-4">
-            <Card>
+          <TabsContent value="relatorio" className="space-y-6">
+            <Card className="bg-slate-900/70 border-white/10 shadow-xl shadow-emerald-500/10 backdrop-blur">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Zap className="h-5 w-5" />
@@ -2004,7 +2201,7 @@ function App() {
                 <Accordion type="multiple" className="w-full">
                   {categories.map((categoria) => (
                     <AccordionItem key={categoria} value={categoria}>
-                      <AccordionTrigger className="font-semibold">
+                      <AccordionTrigger className="font-semibold text-emerald-200">
                         {categoria}
                       </AccordionTrigger>
                       <AccordionContent>
@@ -2028,101 +2225,106 @@ function App() {
                               return (
                                 <div
                                   key={servico.id}
-                                  className="border rounded-lg p-4"
+                                  className="rounded-2xl border border-white/10 bg-slate-900/80 p-4 shadow-inner shadow-black/30 transition hover:border-emerald-400/30 hover:shadow-emerald-500/10"
                                 >
-                                  <div className="flex items-center gap-2">
+                                  <div className="flex items-start gap-3">
                                     <Checkbox
                                       checked={!!selecionado}
                                       onCheckedChange={() =>
                                         toggleServicoRelatorio(servico)
                                       }
                                     />
-                                    <div>
-                                      <h4 className="font-medium">
+                                    <div className="space-y-1">
+                                      <h4 className="text-base font-semibold text-white">
                                         {servico.nome}
                                       </h4>
                                       {servico.descricao && (
-                                        <p className="text-sm text-gray-600">
+                                        <p className="text-sm text-slate-300">
                                           {servico.descricao}
                                         </p>
                                       )}
                                     </div>
                                   </div>
                                   {selecionado && (
-                                    <div className="mt-4 space-y-2">
-                                      <Label
-                                        htmlFor={`quantidade-rel-${servico.id}`}
-                                      >
-                                        {label}
-                                      </Label>
-                                      <Input
-                                        id={`quantidade-rel-${servico.id}`}
-                                        type="number"
-                                        min="0"
-                                        step={isLaudo || isCabo ? "0.01" : "1"}
-                                        value={selecionado.quantidade}
-                                        onChange={(e) =>
-                                          atualizarQuantidadeServicoRelatorio(
-                                            servico.id,
-                                            e.target.value
-                                          )
-                                        }
-                                      />
-                                      <Label
-                                        htmlFor={`descricao-servico-rel-${servico.id}`}
-                                      >
-                                        Descrição
-                                      </Label>
-                                      <Textarea
-                                        id={`descricao-servico-rel-${servico.id}`}
-                                        value={selecionado.descricao}
-                                        onChange={(e) =>
-                                          atualizarDescricaoServicoRelatorio(
-                                            servico.id,
-                                            e.target.value
-                                          )
-                                        }
-                                        rows={2}
-                                      />
-                                      <Label
-                                        htmlFor={`foto-servico-rel-${servico.id}`}
-                                      >
-                                        Foto
-                                      </Label>
-                                      <div className="flex flex-col gap-2">
-                                        <Input
-                                          id={`foto-servico-rel-${servico.id}`}
-                                          type="file"
-                                          accept="image/*"
-                                          capture="environment"
-                                          multiple
-                                          onChange={(e) =>
-                                            adicionarFotoServicoRelatorio(
-                                              servico.id,
-                                              e
-                                            )
-                                          }
-                                        />
-                                        <Input
-                                          type="file"
-                                          accept="image/*"
-                                          multiple
-                                          onChange={(e) =>
-                                            adicionarFotoServicoRelatorio(
-                                              servico.id,
-                                              e
-                                            )
-                                          }
-                                        />
+                                    <div className="mt-4 space-y-4 rounded-xl border border-white/10 bg-slate-950/60 p-4">
+                                      <div className="grid gap-3 md:grid-cols-2">
+                                        <div className="space-y-1">
+                                          <Label htmlFor={`quantidade-rel-${servico.id}`}>
+                                            {label}
+                                          </Label>
+                                          <Input
+                                            id={`quantidade-rel-${servico.id}`}
+                                            type="number"
+                                            min="0"
+                                            step={isLaudo || isCabo ? "0.01" : "1"}
+                                            value={selecionado.quantidade}
+                                            onChange={(e) =>
+                                              atualizarQuantidadeServicoRelatorio(
+                                                servico.id,
+                                                e.target.value
+                                              )
+                                            }
+                                            className="bg-slate-900/80"
+                                          />
+                                        </div>
+                                        <div className="space-y-1">
+                                          <Label htmlFor={`descricao-servico-rel-${servico.id}`}>
+                                            Descrição
+                                          </Label>
+                                          <Textarea
+                                            id={`descricao-servico-rel-${servico.id}`}
+                                            value={selecionado.descricao}
+                                            onChange={(e) =>
+                                              atualizarDescricaoServicoRelatorio(
+                                                servico.id,
+                                                e.target.value
+                                              )
+                                            }
+                                            rows={2}
+                                          />
+                                        </div>
+                                      </div>
+                                      <div className="space-y-2">
+                                        <Label htmlFor={`foto-servico-rel-${servico.id}`}>
+                                          Foto
+                                        </Label>
+                                        <div className="flex flex-col gap-2 md:flex-row">
+                                          <Input
+                                            id={`foto-servico-rel-${servico.id}`}
+                                            type="file"
+                                            accept="image/*"
+                                            capture="environment"
+                                            multiple
+                                            onChange={(e) =>
+                                              adicionarFotoServicoRelatorio(
+                                                servico.id,
+                                                e
+                                              )
+                                            }
+                                            className="bg-slate-900/80"
+                                          />
+                                          <Input
+                                            type="file"
+                                            accept="image/*"
+                                            multiple
+                                            onChange={(e) =>
+                                              adicionarFotoServicoRelatorio(
+                                                servico.id,
+                                                e
+                                              )
+                                            }
+                                            className="bg-slate-900/80"
+                                          />
+                                        </div>
                                       </div>
                                       {selecionado.fotos && selecionado.fotos.length > 0 && (
-                                        <div className="flex flex-wrap gap-2">
+                                        <div className="flex flex-wrap gap-3">
                                           {selecionado.fotos.map((foto, idx) => (
                                             <img
                                               key={idx}
                                               src={foto}
                                               alt="Evidência"
-                                              className="w-full max-w-xs rounded"
+                                              className="w-full max-w-xs rounded-xl object-cover shadow-inner shadow-black/30"
                                             />
                                           ))}
                                         </div>
@@ -2138,9 +2340,11 @@ function App() {
                   ))}
                 </Accordion>
 
-                <div className="space-y-4">
-                  <h3 className="font-semibold">Adicionar Serviço Manual</h3>
-                  <div className="grid gap-2">
+                <div className="space-y-4 rounded-2xl border border-white/10 bg-slate-950/60 p-4">
+                  <h3 className="text-sm font-semibold uppercase tracking-wide text-emerald-200">
+                    Adicionar Serviço Manual
+                  </h3>
+                  <div className="grid gap-3">
                     <Label htmlFor="nome-servico-relatorio">Nome</Label>
                     <Input
                       id="nome-servico-relatorio"
@@ -2151,6 +2355,7 @@ function App() {
                           nome: e.target.value,
                         })
                       }
+                      className="bg-slate-900/80"
                     />
                     <Label htmlFor="descricao-servico-relatorio">
                       Descrição
@@ -2164,6 +2369,7 @@ function App() {
                           descricao: e.target.value,
                         })
                       }
+                      className="bg-slate-900/80"
                     />
                     <Label htmlFor="quantidade-servico-relatorio">
                       Quantidade ou m²
@@ -2178,6 +2384,7 @@ function App() {
                           quantidade: e.target.value,
                         })
                       }
+                      className="bg-slate-900/80"
                     />
                     <Label htmlFor="unidade-servico-relatorio">Unidade</Label>
                     <Input
@@ -2189,6 +2396,7 @@ function App() {
                           unidade: e.target.value,
                         })
                       }
+                      className="bg-slate-900/80"
                     />
                     <Label htmlFor="foto-servico-relatorio">Fotos</Label>
                     <div className="flex flex-col gap-2">
@@ -2199,23 +2407,25 @@ function App() {
                         capture="environment"
                         multiple
                         onChange={handleFotoNovoServicoRelatorioManual}
+                        className="bg-slate-900/80"
                       />
                       <Input
                         type="file"
                         accept="image/*"
                         multiple
                         onChange={handleFotoNovoServicoRelatorioManual}
+                        className="bg-slate-900/80"
                       />
                     </div>
                     {novoServicoRelatorioManual.fotos &&
                       novoServicoRelatorioManual.fotos.length > 0 && (
-                        <div className="flex flex-wrap gap-2">
+                        <div className="flex flex-wrap gap-3">
                           {novoServicoRelatorioManual.fotos.map((foto, idx) => (
                             <img
                               key={idx}
                               src={foto}
                               alt="Pré-visualização"
-                              className="w-full max-w-xs rounded"
+                              className="w-full max-w-xs rounded-xl object-cover shadow-inner shadow-black/30"
                             />
                           ))}
                         </div>
@@ -2224,42 +2434,44 @@ function App() {
                   <Button
                     variant="outline"
                     onClick={adicionarServicoRelatorioManual}
+                    className="h-11 rounded-lg border-white/30 bg-transparent text-white hover:border-emerald-400/40 hover:bg-emerald-500/10"
                   >
                     Adicionar
                   </Button>
 
                   {servicosRelatorioManuais.length > 0 && (
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                       {servicosRelatorioManuais.map((servico) => (
                         <div
                           key={servico.id}
-                          className="p-3 border rounded space-y-2"
+                          className="space-y-3 rounded-2xl border border-white/10 bg-slate-900/80 p-4"
                         >
-                          <div className="flex justify-between items-center">
-                            <span>{`${servico.nome} - ${servico.quantidade} ${servico.unidade}`}</span>
+                          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                            <span className="text-sm font-semibold text-white">{`${servico.nome} - ${servico.quantidade} ${servico.unidade}`}</span>
                             <Button
                               variant="ghost"
                               size="icon"
                               onClick={() =>
                                 removerServicoRelatorioManual(servico.id)
                               }
+                              className="rounded-full text-emerald-200 hover:bg-emerald-500/10"
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </div>
                           {servico.descricao && (
-                            <p className="text-sm text-gray-600">
+                            <p className="text-sm text-slate-300">
                               {servico.descricao}
                             </p>
                           )}
                           {servico.fotos && servico.fotos.length > 0 && (
-                            <div className="flex flex-wrap gap-2">
+                            <div className="flex flex-wrap gap-3">
                               {servico.fotos.map((foto, idx) => (
                                 <img
                                   key={idx}
                                   src={foto}
                                   alt="Evidência"
-                                  className="w-full max-w-xs rounded"
+                                  className="w-full max-w-xs rounded-xl object-cover shadow-inner shadow-black/30"
                                 />
                               ))}
                             </div>
@@ -2272,7 +2484,7 @@ function App() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="bg-slate-900/70 border-white/10 shadow-xl shadow-emerald-500/10 backdrop-blur">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Camera className="h-5 w-5" />
@@ -2285,7 +2497,7 @@ function App() {
               <CardContent className="space-y-6">
                 <Accordion type="multiple" className="w-full">
                   <AccordionItem value="problemas-eletricos">
-                    <AccordionTrigger className="font-semibold">
+                    <AccordionTrigger className="font-semibold text-emerald-200">
                       Problemas Elétricos
                     </AccordionTrigger>
                     <AccordionContent>
@@ -2296,8 +2508,11 @@ function App() {
                               (pe) => pe.problema === p
                             );
                           return (
-                            <div key={p} className="space-y-2">
-                              <Label className="flex items-center gap-2">
+                            <div
+                              key={p}
+                              className="space-y-3 rounded-2xl border border-white/10 bg-slate-900/80 p-4"
+                            >
+                              <Label className="flex items-center gap-3 text-sm text-slate-200">
                                 <Checkbox
                                   checked={!!selecionado}
                                   onCheckedChange={() =>
@@ -2311,7 +2526,7 @@ function App() {
                                 {p}
                               </Label>
                               {selecionado && (
-                                <div className="pl-6 space-y-2">
+                                <div className="space-y-3 rounded-xl border border-white/10 bg-slate-950/60 p-4">
                                   <Textarea
                                     value={selecionado.descricao}
                                     onChange={(e) =>
@@ -2325,7 +2540,7 @@ function App() {
                                     placeholder="Descrição do problema"
                                     rows={2}
                                   />
-                                  <div className="flex flex-col gap-2">
+                                  <div className="flex flex-col gap-2 md:flex-row">
                                     <Input
                                       type="file"
                                       accept="image/*"
@@ -2339,6 +2554,7 @@ function App() {
                                           setProblemasEletricosSelecionados
                                         )
                                       }
+                                      className="bg-slate-900/80"
                                     />
                                     <Input
                                       type="file"
@@ -2352,16 +2568,17 @@ function App() {
                                           setProblemasEletricosSelecionados
                                         )
                                       }
+                                      className="bg-slate-900/80"
                                     />
                                   </div>
                                   {selecionado.fotos && selecionado.fotos.length > 0 && (
-                                    <div className="flex flex-wrap gap-2">
+                                    <div className="flex flex-wrap gap-3">
                                       {selecionado.fotos.map((foto, idx) => (
                                         <img
                                           key={idx}
                                           src={foto}
                                           alt="Evidência"
-                                          className="w-full max-w-xs rounded"
+                                          className="w-full max-w-xs rounded-xl object-cover shadow-inner shadow-black/30"
                                         />
                                       ))}
                                     </div>
@@ -2375,7 +2592,7 @@ function App() {
                     </AccordionContent>
                   </AccordionItem>
                   <AccordionItem value="outros-problemas">
-                    <AccordionTrigger className="font-semibold">
+                    <AccordionTrigger className="font-semibold text-emerald-200">
                       Outros Problemas
                     </AccordionTrigger>
                     <AccordionContent>
@@ -2385,8 +2602,11 @@ function App() {
                             (op) => op.problema === p
                           );
                           return (
-                            <div key={p} className="space-y-2">
-                              <Label className="flex items-center gap-2">
+                            <div
+                              key={p}
+                              className="space-y-3 rounded-2xl border border-white/10 bg-slate-900/80 p-4"
+                            >
+                              <Label className="flex items-center gap-3 text-sm text-slate-200">
                                 <Checkbox
                                   checked={!!selecionado}
                                   onCheckedChange={() =>
@@ -2400,7 +2620,7 @@ function App() {
                                 {p}
                               </Label>
                               {selecionado && (
-                                <div className="pl-6 space-y-2">
+                                <div className="space-y-3 rounded-xl border border-white/10 bg-slate-950/60 p-4">
                                   <Textarea
                                     value={selecionado.descricao}
                                     onChange={(e) =>
@@ -2414,7 +2634,7 @@ function App() {
                                     placeholder="Descrição do problema"
                                     rows={2}
                                   />
-                                  <div className="flex flex-col gap-2">
+                                  <div className="flex flex-col gap-2 md:flex-row">
                                     <Input
                                       type="file"
                                       accept="image/*"
@@ -2428,6 +2648,7 @@ function App() {
                                           setOutrosProblemasSelecionados
                                         )
                                       }
+                                      className="bg-slate-900/80"
                                     />
                                     <Input
                                       type="file"
@@ -2441,16 +2662,17 @@ function App() {
                                           setOutrosProblemasSelecionados
                                         )
                                       }
+                                      className="bg-slate-900/80"
                                     />
                                   </div>
                                   {selecionado.fotos && selecionado.fotos.length > 0 && (
-                                    <div className="flex flex-wrap gap-2">
+                                    <div className="flex flex-wrap gap-3">
                                       {selecionado.fotos.map((foto, idx) => (
                                         <img
                                           key={idx}
                                           src={foto}
                                           alt="Evidência"
-                                          className="w-full max-w-xs rounded"
+                                          className="w-full max-w-xs rounded-xl object-cover shadow-inner shadow-black/30"
                                         />
                                       ))}
                                     </div>
@@ -2478,8 +2700,8 @@ function App() {
                   />
                 </div>
 
-                <div className="space-y-4">
-                  <div>
+                <div className="space-y-4 rounded-2xl border border-white/10 bg-slate-950/60 p-4">
+                  <div className="space-y-2">
                     <Label htmlFor="foto-relatorio">Capturar Foto</Label>
                     <Input
                       id="foto-relatorio"
@@ -2488,9 +2710,10 @@ function App() {
                       capture="environment"
                       multiple
                       onChange={adicionarFotoRelatorio}
+                      className="bg-slate-900/80"
                     />
                   </div>
-                  <div>
+                  <div className="space-y-2">
                     <Label htmlFor="foto-relatorio-galeria">
                       Selecionar da Galeria
                     </Label>
@@ -2500,14 +2723,18 @@ function App() {
                       accept="image/*"
                       multiple
                       onChange={adicionarFotoRelatorio}
+                      className="bg-slate-900/80"
                     />
                   </div>
                   {fotosRelatorio.map((foto) => (
-                    <div key={foto.id} className="space-y-2">
+                    <div
+                      key={foto.id}
+                      className="space-y-3 rounded-2xl border border-white/10 bg-slate-900/80 p-4"
+                    >
                       <img
                         src={foto.src}
                         alt="Evidência"
-                        className="w-full max-w-xs rounded"
+                        className="w-full max-w-md rounded-xl object-cover shadow-inner shadow-black/30"
                       />
                       <Textarea
                         value={foto.descricao}
@@ -2521,10 +2748,10 @@ function App() {
                   ))}
                 </div>
 
-                <div className="flex gap-2">
+                <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
                   <Button
                     onClick={gerarRelatorio}
-                    className="flex-1"
+                    className="h-11 flex-1 rounded-lg bg-emerald-500 text-white shadow-lg shadow-emerald-500/30 transition hover:-translate-y-0.5 hover:bg-emerald-500/90 sm:flex-none sm:px-8"
                     disabled={!cliente.nome}
                   >
                     <FileText className="h-4 w-4 mr-2" />
@@ -2558,6 +2785,7 @@ function App() {
                     }}
                     variant="outline"
                     size="sm"
+                    className="h-11 rounded-lg border-white/30 bg-transparent text-white hover:border-emerald-400/40 hover:bg-emerald-500/10"
                   >
                     Teste
                   </Button>
@@ -2565,17 +2793,21 @@ function App() {
               </CardContent>
             </Card>
           </TabsContent>
-          <TabsContent value="arquivos" className="space-y-4">
+          <TabsContent value="arquivos" className="space-y-6">
             <Input
               placeholder="Pesquisar por nome"
               value={buscaArquivo}
               onChange={(e) => setBuscaArquivo(e.target.value)}
+              className="bg-slate-900/80"
             />
             {arquivosFiltrados.length === 0 ? (
-              <p className="text-gray-500">Nenhum documento salvo.</p>
+              <p className="text-sm text-slate-300">Nenhum documento salvo.</p>
             ) : (
               arquivosFiltrados.map(([nome, dados]) => (
-                <Card key={nome}>
+                <Card
+                  key={nome}
+                  className="bg-slate-900/70 border-white/10 shadow-xl shadow-emerald-500/10 backdrop-blur"
+                >
                   <CardHeader>
                     <CardTitle>{nome}</CardTitle>
                   </CardHeader>
@@ -2583,7 +2815,7 @@ function App() {
                     <div>
                       <h3 className="font-semibold">Orçamentos</h3>
                       {dados.orcamentos?.length ? (
-                        <ul className="list-disc pl-4">
+                        <ul className="space-y-2">
                           {dados.orcamentos.map((o, i) => (
                             <li key={i} className="flex items-center justify-between">
                               <a
@@ -2591,7 +2823,7 @@ function App() {
                                 download={o.nome}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex-1"
+                                className="flex-1 text-sm text-emerald-200 underline"
                               >
                                 {o.data}
                               </a>
@@ -2599,6 +2831,7 @@ function App() {
                                 variant="destructive"
                                 size="sm"
                                 onClick={() => removerArquivo(nome, "orcamentos", i)}
+                                className="rounded-lg"
                               >
                                 <Trash2 className="h-4 w-4" />
                               </Button>
@@ -2606,7 +2839,7 @@ function App() {
                           ))}
                         </ul>
                       ) : (
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-slate-400">
                           Nenhum orçamento salvo
                         </p>
                       )}
@@ -2614,7 +2847,7 @@ function App() {
                     <div>
                       <h3 className="font-semibold">Relatórios</h3>
                       {dados.relatorios?.length ? (
-                        <ul className="list-disc pl-4">
+                        <ul className="space-y-2">
                           {dados.relatorios.map((r, i) => (
                             <li key={i} className="flex items-center justify-between">
                               <a
@@ -2622,7 +2855,7 @@ function App() {
                                 download={r.nome}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex-1"
+                                className="flex-1 text-sm text-emerald-200 underline"
                               >
                                 {r.data}
                               </a>
@@ -2630,6 +2863,7 @@ function App() {
                                 variant="destructive"
                                 size="sm"
                                 onClick={() => removerArquivo(nome, "relatorios", i)}
+                                className="rounded-lg"
                               >
                                 <Trash2 className="h-4 w-4" />
                               </Button>
@@ -2637,7 +2871,7 @@ function App() {
                           ))}
                         </ul>
                       ) : (
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-slate-400">
                           Nenhum relatório salvo
                         </p>
                       )}
@@ -2649,7 +2883,9 @@ function App() {
           </TabsContent>
         </Tabs>
       </div>
-    </div>
+    </main>
+  </div>
+</div>
   );
 }
 
