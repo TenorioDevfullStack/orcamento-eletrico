@@ -42,6 +42,8 @@ const logoRaizEletrica = "/logo-raizeletrica-atualizada-sem-fundo.png";
 import { problemasEletricos, outrosProblemas } from "./data/problems.js";
 import "./App.css";
 import ElectricBackground from "@/components/electric-background.jsx";
+import { cn } from "@/lib/utils.js";
+import ThemeToggle from "@/components/theme-toggle.jsx";
 
 const isBrowser = typeof window !== "undefined";
 
@@ -1157,47 +1159,60 @@ function App() {
     calcularTotal() * (1 - (Number(desconto) || 0) / 100);
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-slate-950 text-slate-100">
+    <div
+      className={cn(
+        "relative min-h-screen overflow-hidden transition-colors",
+        "bg-gradient-to-b from-emerald-50 via-white to-amber-50 text-slate-900",
+        "dark:bg-slate-950 dark:text-slate-100",
+      )}
+    >
       <ElectricBackground />
       <div
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.2),_transparent_60%)]"
+        className={cn(
+          "pointer-events-none absolute inset-0 transition-colors",
+          "bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.15),_transparent_60%)]",
+          "dark:bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.2),_transparent_60%)]",
+        )}
         aria-hidden="true"
       />
       <div
-        className="pointer-events-none absolute inset-0 bg-gradient-to-br from-emerald-900/40 via-slate-950/60 to-amber-600/20"
+        className={cn(
+          "pointer-events-none absolute inset-0 transition-colors",
+          "bg-gradient-to-br from-emerald-200/40 via-white/60 to-amber-200/30",
+          "dark:from-emerald-900/40 dark:via-slate-950/60 dark:to-amber-600/20",
+        )}
         aria-hidden="true"
       />
       <div className="relative z-10 flex min-h-screen flex-col">
-        <header className="border-b border-white/10 bg-slate-950/70 backdrop-blur">
+        <header className="border-b border-slate-200/70 bg-white/80 backdrop-blur transition-colors dark:border-white/10 dark:bg-slate-950/70">
           <div className="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
             <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-                <div className="flex h-20 w-20 items-center justify-center rounded-2xl border border-white/20 bg-white/5 shadow-xl shadow-emerald-500/20 ring-1 ring-emerald-400/40">
+                <div className="flex h-20 w-20 items-center justify-center rounded-2xl border border-slate-200/80 dark:border-white/20 bg-white/5 shadow-xl shadow-emerald-500/20 ring-1 ring-emerald-400/40">
                   <img
                     src={logoRaizEletrica}
                     alt="Logo Raiz Elétrica"
                     className="h-16 w-16 object-contain drop-shadow-[0_10px_25px_rgba(16,185,129,0.35)]"
                   />
                 </div>
-                <div className="space-y-2 text-left">
-
                 <div className="space-y-2 text-center sm:text-left">
-                  <p className="text-xs font-semibold uppercase tracking-[0.3em] text-emerald-300">
+                  <p className="text-xs font-semibold uppercase tracking-[0.3em] text-emerald-600 dark:text-emerald-300">
                     Raiz Elétrica
                   </p>
-                  <h1 className="text-3xl font-bold leading-tight text-white sm:text-4xl">
+                  <h1 className="text-3xl font-bold leading-tight text-slate-900 dark:text-white sm:text-4xl">
                     Orçamento Elétrico e Relatório
                   </h1>
-                  <p className="max-w-2xl text-sm text-slate-300 sm:text-base">
+                  <p className="max-w-2xl text-sm text-slate-600 dark:text-slate-300 sm:text-base">
                     Sistema completo para geração de orçamentos, relatórios técnicos e organização de arquivos eletrônicos.
                   </p>
                 </div>
               </div>
-              <div className="flex items-center justify-center">
+              <div className="flex items-center justify-center gap-3">
+                <ThemeToggle />
                 <Button
                   variant="secondary"
                   size="lg"
-                  className="min-w-[200px] rounded-xl border border-white/10 bg-white/10 text-white shadow-lg shadow-emerald-500/20 transition-all duration-200 hover:-translate-y-0.5 hover:bg-white/20"
+                  className="min-w-[200px] rounded-xl border border-slate-200/70 bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 transition-all duration-200 hover:-translate-y-0.5 hover:bg-emerald-500/90 dark:border-white/10 dark:bg-white/10 dark:text-white dark:hover:bg-white/20"
                   onClick={() => setCurrentTab("orcamento")}
                 >
                   <Calculator className="h-5 w-5" />
@@ -1206,33 +1221,33 @@ function App() {
               </div>
             </div>
             <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              <div className="rounded-2xl border border-white/10 bg-slate-900/60 p-4 shadow-lg shadow-emerald-500/10 backdrop-blur">
-                <p className="text-sm text-slate-300">Serviços selecionados</p>
-                <p className="mt-2 text-2xl font-semibold text-white">
+              <div className="rounded-2xl border border-slate-200/70 dark:border-white/10 bg-white/80 dark:bg-slate-900/60 p-4 shadow-lg shadow-emerald-500/10 backdrop-blur">
+                <p className="text-sm text-slate-600 dark:text-slate-300">Serviços selecionados</p>
+                <p className="mt-2 text-2xl font-semibold text-slate-900 dark:text-white">
                   {totalServicosSelecionadosCount}
                 </p>
-                <p className="mt-1 text-xs text-slate-400">inclui cadastros manuais</p>
+                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">inclui cadastros manuais</p>
               </div>
-              <div className="rounded-2xl border border-white/10 bg-slate-900/60 p-4 shadow-lg shadow-emerald-500/10 backdrop-blur">
-                <p className="text-sm text-slate-300">Estimativa com desconto</p>
-                <p className="mt-2 text-2xl font-semibold text-emerald-300">
+              <div className="rounded-2xl border border-slate-200/70 dark:border-white/10 bg-white/80 dark:bg-slate-900/60 p-4 shadow-lg shadow-emerald-500/10 backdrop-blur">
+                <p className="text-sm text-slate-600 dark:text-slate-300">Estimativa com desconto</p>
+                <p className="mt-2 text-2xl font-semibold text-emerald-600 dark:text-emerald-300">
                   {currencyFormatter.format(totalEstimadoComDesconto || 0)}
                 </p>
-                <p className="mt-1 text-xs text-slate-400">considerando materiais e mão de obra</p>
+                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">considerando materiais e mão de obra</p>
               </div>
-              <div className="rounded-2xl border border-white/10 bg-slate-900/60 p-4 shadow-lg shadow-emerald-500/10 backdrop-blur">
-                <p className="text-sm text-slate-300">Itens complementares</p>
-                <p className="mt-2 text-2xl font-semibold text-white">
+              <div className="rounded-2xl border border-slate-200/70 dark:border-white/10 bg-white/80 dark:bg-slate-900/60 p-4 shadow-lg shadow-emerald-500/10 backdrop-blur">
+                <p className="text-sm text-slate-600 dark:text-slate-300">Itens complementares</p>
+                <p className="mt-2 text-2xl font-semibold text-slate-900 dark:text-white">
                   {totalComplementosCount}
                 </p>
-                <p className="mt-1 text-xs text-slate-400">materiais e despesas extras</p>
+                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">materiais e despesas extras</p>
               </div>
-              <div className="rounded-2xl border border-white/10 bg-slate-900/60 p-4 shadow-lg shadow-emerald-500/10 backdrop-blur">
-                <p className="text-sm text-slate-300">Arquivos organizados</p>
-                <p className="mt-2 text-2xl font-semibold text-white">
+              <div className="rounded-2xl border border-slate-200/70 dark:border-white/10 bg-white/80 dark:bg-slate-900/60 p-4 shadow-lg shadow-emerald-500/10 backdrop-blur">
+                <p className="text-sm text-slate-600 dark:text-slate-300">Arquivos organizados</p>
+                <p className="mt-2 text-2xl font-semibold text-slate-900 dark:text-white">
                   {totalArquivosSalvos}
                 </p>
-                <p className="mt-1 text-xs text-slate-400">
+                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
                   {totalProblemasSelecionados} problemas registrados
                 </p>
               </div>
@@ -1247,76 +1262,76 @@ function App() {
               onValueChange={setCurrentTab}
               className="grid gap-6 lg:grid-cols-[320px_1fr] xl:grid-cols-[360px_1fr]"
             >
-              <TabsList className="flex h-auto w-full flex-wrap items-stretch justify-start gap-2 rounded-3xl border border-white/10 bg-slate-900/60 p-2 shadow-xl shadow-emerald-500/10 backdrop-blur lg:sticky lg:top-28 lg:flex-col lg:h-fit lg:max-h-[calc(100vh-12rem)] lg:overflow-y-auto lg:p-4">
+              <TabsList className="flex h-auto w-full flex-wrap items-stretch justify-start gap-2 rounded-3xl border border-slate-200/70 dark:border-white/10 bg-white/80 dark:bg-slate-900/60 p-2 shadow-xl shadow-emerald-500/10 backdrop-blur lg:sticky lg:top-28 lg:flex-col lg:h-fit lg:max-h-[calc(100vh-12rem)] lg:overflow-y-auto lg:p-4">
                 <TabsTrigger
                   value="cliente"
-                  className="group flex w-full items-center justify-between gap-3 rounded-2xl border border-transparent px-3 py-3 text-xs font-semibold uppercase tracking-wide text-slate-300 transition-all duration-150 hover:border-emerald-400/40 hover:bg-emerald-500/5 hover:text-white sm:text-sm"
+                  className="group flex w-full items-center justify-between gap-3 rounded-2xl border border-transparent px-3 py-3 text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300 transition-all duration-150 hover:border-emerald-400/40 hover:bg-emerald-500/5 hover:text-emerald-600 dark:hover:text-white sm:text-sm"
                 >
                   <span className="flex items-center gap-3">
                     <User className="h-4 w-4" />
                     Cliente
                   </span>
-                  <span className="rounded-full bg-white/10 px-2 py-1 text-[10px] font-medium uppercase tracking-wider text-slate-300 transition group-data-[state=active]:bg-emerald-400/20 group-data-[state=active]:text-emerald-200">
+                  <span className="rounded-full bg-emerald-100/80 px-2 py-1 text-[10px] font-medium uppercase tracking-wider text-slate-600 transition group-data-[state=active]:bg-emerald-400/20 group-data-[state=active]:text-emerald-700 dark:bg-white/10 dark:text-slate-300 dark:group-data-[state=active]:text-emerald-200">
                     1
                   </span>
                 </TabsTrigger>
                 <TabsTrigger
                   value="servicos"
-                  className="group flex w-full items-center justify-between gap-3 rounded-2xl border border-transparent px-3 py-3 text-xs font-semibold uppercase tracking-wide text-slate-300 transition-all duration-150 hover:border-emerald-400/40 hover:bg-emerald-500/5 hover:text-white sm:text-sm"
+                  className="group flex w-full items-center justify-between gap-3 rounded-2xl border border-transparent px-3 py-3 text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300 transition-all duration-150 hover:border-emerald-400/40 hover:bg-emerald-500/5 hover:text-emerald-600 dark:hover:text-white sm:text-sm"
                 >
                   <span className="flex items-center gap-3">
                     <Zap className="h-4 w-4" />
                     Serviços
                   </span>
-                  <span className="rounded-full bg-white/10 px-2 py-1 text-[10px] font-medium uppercase tracking-wider text-slate-300 transition group-data-[state=active]:bg-emerald-400/20 group-data-[state=active]:text-emerald-200">
+                  <span className="rounded-full bg-emerald-100/80 px-2 py-1 text-[10px] font-medium uppercase tracking-wider text-slate-600 transition group-data-[state=active]:bg-emerald-400/20 group-data-[state=active]:text-emerald-700 dark:bg-white/10 dark:text-slate-300 dark:group-data-[state=active]:text-emerald-200">
                     2
                   </span>
                 </TabsTrigger>
                 <TabsTrigger
                   value="extras"
-                  className="group flex w-full items-center justify-between gap-3 rounded-2xl border border-transparent px-3 py-3 text-xs font-semibold uppercase tracking-wide text-slate-300 transition-all duration-150 hover:border-emerald-400/40 hover:bg-emerald-500/5 hover:text-white sm:text-sm"
+                  className="group flex w-full items-center justify-between gap-3 rounded-2xl border border-transparent px-3 py-3 text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300 transition-all duration-150 hover:border-emerald-400/40 hover:bg-emerald-500/5 hover:text-emerald-600 dark:hover:text-white sm:text-sm"
                 >
                   <span className="flex items-center gap-3">
                     <Plus className="h-4 w-4" />
                     Extras
                   </span>
-                  <span className="rounded-full bg-white/10 px-2 py-1 text-[10px] font-medium uppercase tracking-wider text-slate-300 transition group-data-[state=active]:bg-emerald-400/20 group-data-[state=active]:text-emerald-200">
+                  <span className="rounded-full bg-emerald-100/80 px-2 py-1 text-[10px] font-medium uppercase tracking-wider text-slate-600 transition group-data-[state=active]:bg-emerald-400/20 group-data-[state=active]:text-emerald-700 dark:bg-white/10 dark:text-slate-300 dark:group-data-[state=active]:text-emerald-200">
                     3
                   </span>
                 </TabsTrigger>
                 <TabsTrigger
                   value="orcamento"
-                  className="group flex w-full items-center justify-between gap-3 rounded-2xl border border-transparent px-3 py-3 text-xs font-semibold uppercase tracking-wide text-slate-300 transition-all duration-150 hover:border-emerald-400/40 hover:bg-emerald-500/5 hover:text-white sm:text-sm"
+                  className="group flex w-full items-center justify-between gap-3 rounded-2xl border border-transparent px-3 py-3 text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300 transition-all duration-150 hover:border-emerald-400/40 hover:bg-emerald-500/5 hover:text-emerald-600 dark:hover:text-white sm:text-sm"
                 >
                   <span className="flex items-center gap-3">
                     <Calculator className="h-4 w-4" />
                     Orçamento
                   </span>
-                  <span className="rounded-full bg-white/10 px-2 py-1 text-[10px] font-medium uppercase tracking-wider text-slate-300 transition group-data-[state=active]:bg-emerald-400/20 group-data-[state=active]:text-emerald-200">
+                  <span className="rounded-full bg-emerald-100/80 px-2 py-1 text-[10px] font-medium uppercase tracking-wider text-slate-600 transition group-data-[state=active]:bg-emerald-400/20 group-data-[state=active]:text-emerald-700 dark:bg-white/10 dark:text-slate-300 dark:group-data-[state=active]:text-emerald-200">
                     4
                   </span>
                 </TabsTrigger>
                 <TabsTrigger
                   value="relatorio"
-                  className="group flex w-full items-center justify-between gap-3 rounded-2xl border border-transparent px-3 py-3 text-xs font-semibold uppercase tracking-wide text-slate-300 transition-all duration-150 hover:border-emerald-400/40 hover:bg-emerald-500/5 hover:text-white sm:text-sm"
+                  className="group flex w-full items-center justify-between gap-3 rounded-2xl border border-transparent px-3 py-3 text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300 transition-all duration-150 hover:border-emerald-400/40 hover:bg-emerald-500/5 hover:text-emerald-600 dark:hover:text-white sm:text-sm"
                 >
                   <span className="flex items-center gap-3">
                     <Camera className="h-4 w-4" />
                     Relatório
                   </span>
-                  <span className="rounded-full bg-white/10 px-2 py-1 text-[10px] font-medium uppercase tracking-wider text-slate-300 transition group-data-[state=active]:bg-emerald-400/20 group-data-[state=active]:text-emerald-200">
+                  <span className="rounded-full bg-emerald-100/80 px-2 py-1 text-[10px] font-medium uppercase tracking-wider text-slate-600 transition group-data-[state=active]:bg-emerald-400/20 group-data-[state=active]:text-emerald-700 dark:bg-white/10 dark:text-slate-300 dark:group-data-[state=active]:text-emerald-200">
                     5
                   </span>
                 </TabsTrigger>
                 <TabsTrigger
                   value="arquivos"
-                  className="group flex w-full items-center justify-between gap-3 rounded-2xl border border-transparent px-3 py-3 text-xs font-semibold uppercase tracking-wide text-slate-300 transition-all duration-150 hover:border-emerald-400/40 hover:bg-emerald-500/5 hover:text-white sm:text-sm"
+                  className="group flex w-full items-center justify-between gap-3 rounded-2xl border border-transparent px-3 py-3 text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300 transition-all duration-150 hover:border-emerald-400/40 hover:bg-emerald-500/5 hover:text-white sm:text-sm"
                 >
                   <span className="flex items-center gap-3">
                     <Folder className="h-4 w-4" />
                     Arquivos
                   </span>
-                  <span className="rounded-full bg-white/10 px-2 py-1 text-[10px] font-medium uppercase tracking-wider text-slate-300 transition group-data-[state=active]:bg-emerald-400/20 group-data-[state=active]:text-emerald-200">
+                  <span className="rounded-full bg-white/10 px-2 py-1 text-[10px] font-medium uppercase tracking-wider text-slate-600 dark:text-slate-300 transition group-data-[state=active]:bg-emerald-400/20 group-data-[state=active]:text-emerald-200">
                     6
                   </span>
                 </TabsTrigger>
@@ -1324,7 +1339,7 @@ function App() {
 
               {/* Aba Cliente */}
               <TabsContent value="cliente" className="space-y-6">
-                <Card className="bg-slate-900/70 border-white/10 shadow-xl shadow-emerald-500/10 backdrop-blur">
+                <Card className="bg-white/80 dark:bg-slate-900/70 border-slate-200/70 dark:border-white/10 shadow-xl shadow-emerald-500/10 backdrop-blur">
                   <CardHeader>
                     <CardTitle>Dados do Cliente</CardTitle>
                     <CardDescription>
@@ -1379,7 +1394,7 @@ function App() {
 
           {/* Aba Serviços */}
           <TabsContent value="servicos" className="space-y-6">
-            <Card className="bg-slate-900/70 border-white/10 shadow-xl shadow-emerald-500/10 backdrop-blur">
+            <Card className="bg-white/80 dark:bg-slate-900/70 border-slate-200/70 dark:border-white/10 shadow-xl shadow-emerald-500/10 backdrop-blur">
               <CardHeader>
                 <CardTitle>Serviços Disponíveis</CardTitle>
                 <CardDescription>
@@ -1404,7 +1419,7 @@ function App() {
                               return (
                                 <div
                                   key={servico.id}
-                                  className="rounded-2xl border border-white/5 bg-slate-900/80 p-4 shadow-inner shadow-black/30 transition hover:border-emerald-400/30 hover:shadow-emerald-500/10"
+                                  className="rounded-2xl border border-slate-200/60 dark:border-white/5 bg-white/85 dark:bg-slate-900/80 p-4 shadow-inner shadow-black/30 transition hover:border-emerald-400/30 hover:shadow-emerald-500/10"
                                 >
                                   <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                                     <div className="flex items-start gap-3">
@@ -1417,10 +1432,10 @@ function App() {
                                       <div className="flex-1 space-y-3">
                                         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                                           <div className="space-y-1">
-                                            <h4 className="text-lg font-semibold text-white">
+                                            <h4 className="text-lg font-semibold text-slate-900 dark:text-white">
                                               {servico.nome}
                                             </h4>
-                                            <p className="text-sm text-slate-300">
+                                            <p className="text-sm text-slate-600 dark:text-slate-300">
                                               {servico.descricao}
                                             </p>
                                           </div>
@@ -1439,7 +1454,7 @@ function App() {
                                         </div>
 
                                         {selecionado && (
-                                          <div className="rounded-xl border border-white/5 bg-slate-950/60 p-4">
+                                          <div className="rounded-xl border border-slate-200/60 dark:border-white/5 bg-white/80 dark:bg-slate-950/60 p-4">
                                             <div className="grid gap-4 md:grid-cols-2">
                                               <div className="space-y-1">
                                                 <Label
@@ -1465,7 +1480,7 @@ function App() {
                                                       e.target.value
                                                     )
                                                   }
-                                                  className="w-full max-w-[6rem] bg-slate-900/80"
+                                                  className="w-full max-w-[6rem] bg-white/85 dark:bg-slate-900/80"
                                                 />
                                               </div>
                                               <div className="space-y-1">
@@ -1485,7 +1500,7 @@ function App() {
                                                       e.target.value
                                                     )
                                                   }
-                                                  className="w-full max-w-[8rem] bg-slate-900/80"
+                                                  className="w-full max-w-[8rem] bg-white/85 dark:bg-slate-900/80"
                                                 />
                                               </div>
                                               <div className="md:col-span-2">
@@ -1539,7 +1554,7 @@ function App() {
                   <Button
                     variant="outline"
                     onClick={() => setCurrentTab("cliente")}
-                    className="h-11 rounded-lg border-white/30 bg-transparent text-white hover:border-emerald-400/40 hover:bg-emerald-500/10"
+                    className="h-11 rounded-lg border-slate-300 dark:border-white/30 bg-transparent text-slate-900 dark:text-white hover:border-emerald-400/40 hover:bg-emerald-500/10"
                   >
                     Voltar
                   </Button>
@@ -1557,7 +1572,7 @@ function App() {
           {/* Aba Extras */}
           <TabsContent value="extras" className="space-y-6">
             {/* Serviços Manuais */}
-            <Card className="bg-slate-900/70 border-white/10 shadow-xl shadow-emerald-500/10 backdrop-blur">
+            <Card className="bg-white/80 dark:bg-slate-900/70 border-slate-200/70 dark:border-white/10 shadow-xl shadow-emerald-500/10 backdrop-blur">
               <CardHeader>
                 <CardTitle>Serviços Adicionais</CardTitle>
                 <CardDescription>
@@ -1641,25 +1656,24 @@ function App() {
                     {servicosManuais.map((servico) => (
                       <div
                         key={servico.id}
-                        className="flex flex-col gap-4 rounded-2xl border border-white/10 bg-slate-950/60 p-4 sm:flex-row sm:items-center sm:justify-between"
+                        className="flex flex-col gap-4 rounded-2xl border border-slate-200/70 dark:border-white/10 bg-white/80 dark:bg-slate-950/60 p-4 sm:flex-row sm:items-center sm:justify-between"
                       >
-                        <div className="space-y-1 text-sm text-slate-300">
-                          <span className="text-base font-semibold text-white">
+                        <div className="space-y-1 text-sm text-slate-600 dark:text-slate-300">
+                          <span className="text-base font-semibold text-slate-900 dark:text-white">
                             {servico.nome}
                           </span>
                           {servico.descricao && (
-                            <span className="block text-xs text-slate-400">
+                            <span className="block text-xs text-slate-500 dark:text-slate-400">
                               {servico.descricao}
                             </span>
                           )}
                         </div>
                         <div className="flex items-center gap-3">
-                          <Badge className="rounded-full border border-emerald-400/20 bg-emerald-500/10 px-3 py-1 text-left text-emerald-200 sm:text-right">
-
-                          <Badge className="rounded-full border border-emerald-400/20 bg-emerald-500/10 px-3 py-1 text-emerald-200">
-                            {`${servico.quantidade} x R$ ${servico.preco_unitario.toFixed(
-                              2
-                            )} = R$ ${(servico.quantidade * servico.preco_unitario).toFixed(2)}`}
+                          <Badge className="rounded-full border border-emerald-400/30 bg-emerald-100/70 px-3 py-1 text-left text-emerald-700 sm:text-right dark:border-emerald-400/20 dark:bg-emerald-500/10 dark:text-emerald-200">
+                            Qtd: {servico.quantidade}
+                          </Badge>
+                          <Badge className="rounded-full border border-emerald-400/30 bg-emerald-100/70 px-3 py-1 text-emerald-700 dark:border-emerald-400/20 dark:bg-emerald-500/10 dark:text-emerald-200">
+                            {`${servico.quantidade} x R$ ${servico.preco_unitario.toFixed(2)} = R$ ${(servico.quantidade * servico.preco_unitario).toFixed(2)}`}
                           </Badge>
                           <Button
                             variant="destructive"
@@ -1678,7 +1692,7 @@ function App() {
               </Card>
 
               {/* Despesas Extras */}
-              <Card className="bg-slate-900/70 border-white/10 shadow-xl shadow-emerald-500/10 backdrop-blur">
+              <Card className="bg-white/80 dark:bg-slate-900/70 border-slate-200/70 dark:border-white/10 shadow-xl shadow-emerald-500/10 backdrop-blur">
                 <CardHeader>
                   <CardTitle>Despesas Extras</CardTitle>
                   <CardDescription>
@@ -1732,11 +1746,11 @@ function App() {
                       {despesasExtras.map((d) => (
                         <div
                           key={d.id}
-                          className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-slate-950/60 p-4 sm:flex-row sm:items-center sm:justify-between"
+                          className="flex flex-col gap-3 rounded-2xl border border-slate-200/70 dark:border-white/10 bg-white/80 dark:bg-slate-950/60 p-4 sm:flex-row sm:items-center sm:justify-between"
                         >
-                          <span className="text-sm text-slate-200">{d.descricao}</span>
+                          <span className="text-sm text-slate-700 dark:text-slate-200">{d.descricao}</span>
                           <div className="flex items-center gap-3">
-                            <Badge className="rounded-full border border-emerald-400/20 bg-emerald-500/10 px-3 py-1 text-left text-emerald-200 sm:text-right">
+                            <Badge className="rounded-full border border-emerald-400/30 bg-emerald-100/70 px-3 py-1 text-left text-emerald-700 sm:text-right dark:border-emerald-400/20 dark:bg-emerald-500/10 dark:text-emerald-200">
                               R$ {d.valor.toFixed(2)}
                             </Badge>
                             <Button
@@ -1756,7 +1770,7 @@ function App() {
               </Card>
 
               {/* Materiais */}
-              <Card className="bg-slate-900/70 border-white/10 shadow-xl shadow-emerald-500/10 backdrop-blur">
+              <Card className="bg-white/80 dark:bg-slate-900/70 border-slate-200/70 dark:border-white/10 shadow-xl shadow-emerald-500/10 backdrop-blur">
                 <CardHeader>
                   <CardTitle>Materiais</CardTitle>
                 <CardDescription>
@@ -1825,11 +1839,11 @@ function App() {
                     {materiais.map((material) => (
                       <div
                         key={material.id}
-                        className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-slate-950/60 p-4 sm:flex-row sm:items-center sm:justify-between"
+                        className="flex flex-col gap-3 rounded-2xl border border-slate-200/70 dark:border-white/10 bg-white/80 dark:bg-slate-950/60 p-4 sm:flex-row sm:items-center sm:justify-between"
                       >
-                        <span className="text-sm text-slate-200">{material.descricao}</span>
+                        <span className="text-sm text-slate-700 dark:text-slate-200">{material.descricao}</span>
                         <div className="flex items-center gap-3">
-                          <Badge className="rounded-full border border-emerald-400/20 bg-emerald-500/10 px-3 py-1 text-left text-emerald-200 sm:text-right">
+                          <Badge className="rounded-full border border-emerald-400/30 bg-emerald-100/70 px-3 py-1 text-left text-emerald-700 sm:text-right dark:border-emerald-400/20 dark:bg-emerald-500/10 dark:text-emerald-200">
                             {`${material.quantidade} x R$ ${material.preco_unitario.toFixed(2)} = R$ ${(material.quantidade * material.preco_unitario).toFixed(2)}`}
                           </Badge>
                           <Button
@@ -1849,7 +1863,7 @@ function App() {
             </Card>
 
             {/* Observações Gerais */}
-            <Card className="bg-slate-900/70 border-white/10 shadow-xl shadow-emerald-500/10 backdrop-blur">
+            <Card className="bg-white/80 dark:bg-slate-900/70 border-slate-200/70 dark:border-white/10 shadow-xl shadow-emerald-500/10 backdrop-blur">
               <CardHeader>
                 <CardTitle>Observações Gerais</CardTitle>
                 <CardDescription>
@@ -1909,7 +1923,7 @@ function App() {
               <Button
                 variant="outline"
                 onClick={() => setCurrentTab("servicos")}
-                className="h-11 rounded-lg border-white/30 bg-transparent text-white hover:border-emerald-400/40 hover:bg-emerald-500/10"
+                className="h-11 rounded-lg border-slate-300 dark:border-white/30 bg-transparent text-slate-900 dark:text-white hover:border-emerald-400/40 hover:bg-emerald-500/10"
               >
                 Voltar
               </Button>
@@ -1924,7 +1938,7 @@ function App() {
 
           {/* Aba Orçamento */}
           <TabsContent value="orcamento" className="space-y-6">
-            <Card className="bg-slate-900/70 border-white/10 shadow-2xl shadow-emerald-500/10 backdrop-blur">
+            <Card className="bg-white/80 dark:bg-slate-900/70 border-slate-200/70 dark:border-white/10 shadow-2xl shadow-emerald-500/10 backdrop-blur">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <FileText className="h-5 w-5" />
@@ -1934,20 +1948,20 @@ function App() {
               </CardHeader>
               <CardContent className="space-y-6">
                 {/* Dados do Cliente */}
-                <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-4">
+                <div className="rounded-2xl border border-slate-200/70 dark:border-white/10 bg-white/80 dark:bg-slate-950/60 p-4">
                   <h3 className="text-sm font-semibold uppercase tracking-wide text-emerald-200">
                     Cliente
                   </h3>
-                  <div className="mt-3 space-y-1 text-sm text-slate-200">
+                  <div className="mt-3 space-y-1 text-sm text-slate-700 dark:text-slate-200">
                     <p>
-                      <span className="font-semibold text-white">Nome:</span> {cliente.nome}
+                      <span className="font-semibold text-slate-900 dark:text-white">Nome:</span> {cliente.nome}
                     </p>
                     <p>
-                      <span className="font-semibold text-white">Contato:</span> {cliente.contato}
+                      <span className="font-semibold text-slate-900 dark:text-white">Contato:</span> {cliente.contato}
                     </p>
                     {cliente.endereco && (
                       <p>
-                        <span className="font-semibold text-white">Endereço:</span> {cliente.endereco}
+                        <span className="font-semibold text-slate-900 dark:text-white">Endereço:</span> {cliente.endereco}
                       </p>
                     )}
                   </div>
@@ -1957,7 +1971,7 @@ function App() {
 
                 {/* Serviços Selecionados */}
                 {servicosSelecionados.length > 0 && (
-                  <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-4">
+                  <div className="rounded-2xl border border-slate-200/70 dark:border-white/10 bg-white/80 dark:bg-slate-950/60 p-4">
                     <h3 className="text-sm font-semibold uppercase tracking-wide text-emerald-200">
                       Serviços Selecionados
                     </h3>
@@ -1968,13 +1982,13 @@ function App() {
                         return (
                           <div
                             key={servico.id}
-                            className="flex flex-col gap-3 rounded-xl border border-white/10 bg-slate-900/80 p-4 sm:flex-row sm:items-start sm:justify-between"
+                            className="flex flex-col gap-3 rounded-xl border border-slate-200/70 dark:border-white/10 bg-white/85 dark:bg-slate-900/80 p-4 sm:flex-row sm:items-start sm:justify-between"
                           >
                             <div className="flex-1 space-y-2">
-                              <p className="text-base font-semibold text-white">
+                              <p className="text-base font-semibold text-slate-900 dark:text-white">
                                 {servico.nome}
                               </p>
-                              <p className="text-sm text-slate-300">
+                              <p className="text-sm text-slate-600 dark:text-slate-300">
                                 {servico.descricao}
                               </p>
                               {servico.observacoes && (
@@ -1983,7 +1997,7 @@ function App() {
                                 </p>
                               )}
                             </div>
-                            <Badge className="rounded-full border border-emerald-400/20 bg-emerald-500/10 px-3 py-1 text-left text-emerald-200 sm:text-right">
+                            <Badge className="rounded-full border border-emerald-400/30 bg-emerald-100/70 px-3 py-1 text-left text-emerald-700 sm:text-right dark:border-emerald-400/20 dark:bg-emerald-500/10 dark:text-emerald-200">
                               {servico.categoria === "Laudos"
                                 ? `${servico.quantidade} m² x R$ ${precoFinal.toFixed(2)} = R$ ${(precoFinal * servico.quantidade).toFixed(2)}`
                                 : `${servico.quantidade}x R$ ${precoFinal.toFixed(2)} = R$ ${(precoFinal * servico.quantidade).toFixed(2)}`}
@@ -1997,7 +2011,7 @@ function App() {
 
                 {/* Serviços Manuais */}
                 {servicosManuais.length > 0 && (
-                  <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-4">
+                  <div className="rounded-2xl border border-slate-200/70 dark:border-white/10 bg-white/80 dark:bg-slate-950/60 p-4">
                     <h3 className="text-sm font-semibold uppercase tracking-wide text-emerald-200">
                       Serviços Adicionais
                     </h3>
@@ -2008,19 +2022,19 @@ function App() {
                         return (
                           <div
                             key={servico.id}
-                            className="flex flex-col gap-3 rounded-xl border border-white/10 bg-slate-900/80 p-4 sm:flex-row sm:items-start sm:justify-between"
+                            className="flex flex-col gap-3 rounded-xl border border-slate-200/70 dark:border-white/10 bg-white/85 dark:bg-slate-900/80 p-4 sm:flex-row sm:items-start sm:justify-between"
                           >
                             <div className="space-y-1">
-                              <p className="text-base font-semibold text-white">
+                              <p className="text-base font-semibold text-slate-900 dark:text-white">
                                 {servico.nome}
                               </p>
                               {servico.descricao && (
-                                <p className="text-sm text-slate-300">
+                                <p className="text-sm text-slate-600 dark:text-slate-300">
                                   {servico.descricao}
                                 </p>
                               )}
                             </div>
-                            <Badge className="rounded-full border border-emerald-400/20 bg-emerald-500/10 px-3 py-1 text-left text-emerald-200 sm:text-right">
+                            <Badge className="rounded-full border border-emerald-400/30 bg-emerald-100/70 px-3 py-1 text-left text-emerald-700 sm:text-right dark:border-emerald-400/20 dark:bg-emerald-500/10 dark:text-emerald-200">
                               {`${servico.quantidade} x R$ ${precoFinal.toFixed(2)} = R$ ${(servico.quantidade * precoFinal).toFixed(2)}`}
                             </Badge>
                           </div>
@@ -2032,7 +2046,7 @@ function App() {
 
                 {/* Materiais */}
                 {materiais.length > 0 && (
-                  <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-4">
+                  <div className="rounded-2xl border border-slate-200/70 dark:border-white/10 bg-white/80 dark:bg-slate-950/60 p-4">
                     <h3 className="text-sm font-semibold uppercase tracking-wide text-emerald-200">
                       Materiais
                     </h3>
@@ -2040,12 +2054,12 @@ function App() {
                       {materiais.map((material) => (
                         <div
                           key={material.id}
-                          className="flex flex-col gap-3 rounded-xl border border-white/10 bg-slate-900/80 p-4 sm:flex-row sm:items-start sm:justify-between"
+                          className="flex flex-col gap-3 rounded-xl border border-slate-200/70 dark:border-white/10 bg-white/85 dark:bg-slate-900/80 p-4 sm:flex-row sm:items-start sm:justify-between"
                         >
-                          <div className="flex-1 text-sm text-slate-200">
-                            <p className="font-semibold text-white">{material.descricao}</p>
+                          <div className="flex-1 text-sm text-slate-700 dark:text-slate-200">
+                            <p className="font-semibold text-slate-900 dark:text-white">{material.descricao}</p>
                           </div>
-                          <Badge className="rounded-full border border-emerald-400/20 bg-emerald-500/10 px-3 py-1 text-left text-emerald-200 sm:text-right">
+                          <Badge className="rounded-full border border-emerald-400/30 bg-emerald-100/70 px-3 py-1 text-left text-emerald-700 sm:text-right dark:border-emerald-400/20 dark:bg-emerald-500/10 dark:text-emerald-200">
                             {`${material.quantidade} x R$ ${material.preco_unitario.toFixed(2)} = R$ ${(material.quantidade * material.preco_unitario).toFixed(2)}`}
                           </Badge>
                         </div>
@@ -2056,7 +2070,7 @@ function App() {
 
                 {/* Despesas Extras */}
                 {despesasExtras.length > 0 && (
-                  <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-4">
+                  <div className="rounded-2xl border border-slate-200/70 dark:border-white/10 bg-white/80 dark:bg-slate-950/60 p-4">
                     <h3 className="text-sm font-semibold uppercase tracking-wide text-emerald-200">
                       Despesas Extras
                     </h3>
@@ -2064,10 +2078,10 @@ function App() {
                       {despesasExtras.map((d) => (
                         <div
                           key={d.id}
-                          className="flex flex-col gap-3 rounded-xl border border-white/10 bg-slate-900/80 p-4 sm:flex-row sm:items-center sm:justify-between"
+                          className="flex flex-col gap-3 rounded-xl border border-slate-200/70 dark:border-white/10 bg-white/85 dark:bg-slate-900/80 p-4 sm:flex-row sm:items-center sm:justify-between"
                         >
-                          <span className="text-sm text-slate-200">{d.descricao}</span>
-                          <Badge className="rounded-full border border-emerald-400/20 bg-emerald-500/10 px-3 py-1 text-left text-emerald-200 sm:text-right">
+                          <span className="text-sm text-slate-700 dark:text-slate-200">{d.descricao}</span>
+                          <Badge className="rounded-full border border-emerald-400/30 bg-emerald-100/70 px-3 py-1 text-left text-emerald-700 sm:text-right dark:border-emerald-400/20 dark:bg-emerald-500/10 dark:text-emerald-200">
                             R$ {d.valor.toFixed(2)}
                           </Badge>
                         </div>
@@ -2078,11 +2092,11 @@ function App() {
 
                 {/* Observações Gerais */}
                 {observacoesGerais && (
-                  <div className="rounded-2xl border border-white/10 bg-slate-950/60 p-4">
+                  <div className="rounded-2xl border border-slate-200/70 dark:border-white/10 bg-white/80 dark:bg-slate-950/60 p-4">
                     <h3 className="text-sm font-semibold uppercase tracking-wide text-emerald-200">
                       Observações Gerais
                     </h3>
-                    <p className="mt-3 text-sm text-slate-200">
+                    <p className="mt-3 text-sm text-slate-700 dark:text-slate-200">
                       {observacoesGerais}
                     </p>
                   </div>
@@ -2118,15 +2132,15 @@ function App() {
                 <Separator />
 
                 {/* Desconto */}
-                <div className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-slate-950/60 p-4 sm:flex-row sm:items-center sm:justify-end">
+                <div className="flex flex-col gap-3 rounded-2xl border border-slate-200/70 dark:border-white/10 bg-white/80 dark:bg-slate-950/60 p-4 sm:flex-row sm:items-center sm:justify-end">
                   <div className="flex items-center gap-3">
-                    <Label htmlFor="desconto" className="text-slate-200">
+                    <Label htmlFor="desconto" className="text-slate-700 dark:text-slate-200">
                       Desconto (%)
                     </Label>
                     <Input
                       id="desconto"
                       type="number"
-                      className="w-24 bg-slate-900/80"
+                      className="w-24 bg-white/85 dark:bg-slate-900/80"
                       value={desconto}
                       onChange={(e) =>
                         setDesconto(parseFloat(e.target.value) || 0)
@@ -2136,8 +2150,8 @@ function App() {
                 </div>
 
                 {/* Totais */}
-                <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-slate-900/80 via-slate-950/60 to-emerald-900/20 p-6 text-right shadow-inner shadow-emerald-500/10">
-                  <div className="space-y-2 text-sm text-slate-200">
+                <div className="rounded-2xl border border-slate-200/70 dark:border-white/10 bg-gradient-to-br from-emerald-100/70 via-white/85 to-amber-100/40 p-6 text-right shadow-inner shadow-emerald-500/10 transition-colors dark:from-slate-900/80 dark:via-slate-950/60 dark:to-emerald-900/20">
+                  <div className="space-y-2 text-sm text-slate-700 dark:text-slate-200">
                     <div className="flex items-center justify-between">
                       <span>Subtotal Mão de Obra</span>
                       <span>{currencyFormatter.format(calcularSubtotalMaoDeObra())}</span>
@@ -2147,7 +2161,7 @@ function App() {
                       <span>{currencyFormatter.format(calcularSubtotalMateriais())}</span>
                     </div>
                   </div>
-                  <div className="mt-4 flex items-center justify-between rounded-xl border border-emerald-400/40 bg-emerald-500/10 px-4 py-3 text-lg font-semibold text-emerald-200">
+                  <div className="mt-4 flex items-center justify-between rounded-xl border border-emerald-400/40 bg-emerald-100/70 px-4 py-3 text-lg font-semibold text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-200">
                     <span>Total estimado</span>
                     <span>
                       {currencyFormatter.format(
@@ -2155,16 +2169,7 @@ function App() {
                       )}
                     </span>
                   </div>
-                  </div>
-                  <div className="mt-4 flex items-center justify-between rounded-xl border border-emerald-400/40 bg-emerald-500/10 px-4 py-3 text-lg font-semibold text-emerald-200">
-                    <span>Total estimado</span>
-                    <span>
-                      {currencyFormatter.format(
-                        calcularTotal() * (1 - desconto / 100)
-                      )}
-                    </span>
-                  </div>
-                  <p className="mt-3 text-xs uppercase tracking-[0.2em] text-slate-400">
+                  <p className="mt-3 text-xs uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
                     Atualizado em {new Date().toLocaleDateString("pt-BR")}
                   </p>
                 </div>
@@ -2174,7 +2179,7 @@ function App() {
                   <Button
                     variant="outline"
                     onClick={() => setCurrentTab("extras")}
-                    className="h-11 rounded-lg border-white/30 bg-transparent text-white hover:border-emerald-400/40 hover:bg-emerald-500/10"
+                    className="h-11 rounded-lg border-slate-300 dark:border-white/30 bg-transparent text-slate-900 dark:text-white hover:border-emerald-400/40 hover:bg-emerald-500/10"
                   >
                     Voltar
                   </Button>
@@ -2189,7 +2194,7 @@ function App() {
                   <Button
                     variant="outline"
                     onClick={limparFormulario}
-                    className="h-11 rounded-lg border-white/30 bg-transparent text-white hover:border-emerald-400/40 hover:bg-emerald-500/10"
+                    className="h-11 rounded-lg border-slate-300 dark:border-white/30 bg-transparent text-slate-900 dark:text-white hover:border-emerald-400/40 hover:bg-emerald-500/10"
                   >
                     Novo Orçamento
                   </Button>
@@ -2200,7 +2205,7 @@ function App() {
 
           {/* Aba Relatório */}
           <TabsContent value="relatorio" className="space-y-6">
-            <Card className="bg-slate-900/70 border-white/10 shadow-xl shadow-emerald-500/10 backdrop-blur">
+            <Card className="bg-white/80 dark:bg-slate-900/70 border-slate-200/70 dark:border-white/10 shadow-xl shadow-emerald-500/10 backdrop-blur">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Zap className="h-5 w-5" />
@@ -2238,7 +2243,7 @@ function App() {
                               return (
                                 <div
                                   key={servico.id}
-                                  className="rounded-2xl border border-white/10 bg-slate-900/80 p-4 shadow-inner shadow-black/30 transition hover:border-emerald-400/30 hover:shadow-emerald-500/10"
+                                  className="rounded-2xl border border-slate-200/70 dark:border-white/10 bg-white/85 dark:bg-slate-900/80 p-4 shadow-inner shadow-black/30 transition hover:border-emerald-400/30 hover:shadow-emerald-500/10"
                                 >
                                   <div className="flex items-start gap-3">
                                     <Checkbox
@@ -2248,18 +2253,18 @@ function App() {
                                       }
                                     />
                                     <div className="space-y-1">
-                                      <h4 className="text-base font-semibold text-white">
+                                      <h4 className="text-base font-semibold text-slate-900 dark:text-white">
                                         {servico.nome}
                                       </h4>
                                       {servico.descricao && (
-                                        <p className="text-sm text-slate-300">
+                                        <p className="text-sm text-slate-600 dark:text-slate-300">
                                           {servico.descricao}
                                         </p>
                                       )}
                                     </div>
                                   </div>
                                   {selecionado && (
-                                    <div className="mt-4 space-y-4 rounded-xl border border-white/10 bg-slate-950/60 p-4">
+                                    <div className="mt-4 space-y-4 rounded-xl border border-slate-200/70 dark:border-white/10 bg-white/80 dark:bg-slate-950/60 p-4">
                                       <div className="grid gap-3 md:grid-cols-2">
                                         <div className="space-y-1">
                                           <Label htmlFor={`quantidade-rel-${servico.id}`}>
@@ -2277,7 +2282,7 @@ function App() {
                                                 e.target.value
                                               )
                                             }
-                                            className="bg-slate-900/80"
+                                            className="bg-white/85 dark:bg-slate-900/80"
                                           />
                                         </div>
                                         <div className="space-y-1">
@@ -2314,7 +2319,7 @@ function App() {
                                                 e
                                               )
                                             }
-                                            className="bg-slate-900/80"
+                                            className="bg-white/85 dark:bg-slate-900/80"
                                           />
                                           <Input
                                             type="file"
@@ -2326,7 +2331,7 @@ function App() {
                                                 e
                                               )
                                             }
-                                            className="bg-slate-900/80"
+                                            className="bg-white/85 dark:bg-slate-900/80"
                                           />
                                         </div>
                                       </div>
@@ -2353,7 +2358,7 @@ function App() {
                   ))}
                 </Accordion>
 
-                <div className="space-y-4 rounded-2xl border border-white/10 bg-slate-950/60 p-4">
+                <div className="space-y-4 rounded-2xl border border-slate-200/70 dark:border-white/10 bg-white/80 dark:bg-slate-950/60 p-4">
                   <h3 className="text-sm font-semibold uppercase tracking-wide text-emerald-200">
                     Adicionar Serviço Manual
                   </h3>
@@ -2368,7 +2373,7 @@ function App() {
                           nome: e.target.value,
                         })
                       }
-                      className="bg-slate-900/80"
+                      className="bg-white/85 dark:bg-slate-900/80"
                     />
                     <Label htmlFor="descricao-servico-relatorio">
                       Descrição
@@ -2382,7 +2387,7 @@ function App() {
                           descricao: e.target.value,
                         })
                       }
-                      className="bg-slate-900/80"
+                      className="bg-white/85 dark:bg-slate-900/80"
                     />
                     <Label htmlFor="quantidade-servico-relatorio">
                       Quantidade ou m²
@@ -2397,7 +2402,7 @@ function App() {
                           quantidade: e.target.value,
                         })
                       }
-                      className="bg-slate-900/80"
+                      className="bg-white/85 dark:bg-slate-900/80"
                     />
                     <Label htmlFor="unidade-servico-relatorio">Unidade</Label>
                     <Input
@@ -2409,7 +2414,7 @@ function App() {
                           unidade: e.target.value,
                         })
                       }
-                      className="bg-slate-900/80"
+                      className="bg-white/85 dark:bg-slate-900/80"
                     />
                     <Label htmlFor="foto-servico-relatorio">Fotos</Label>
                     <div className="flex flex-col gap-2">
@@ -2420,14 +2425,14 @@ function App() {
                         capture="environment"
                         multiple
                         onChange={handleFotoNovoServicoRelatorioManual}
-                        className="bg-slate-900/80"
+                        className="bg-white/85 dark:bg-slate-900/80"
                       />
                       <Input
                         type="file"
                         accept="image/*"
                         multiple
                         onChange={handleFotoNovoServicoRelatorioManual}
-                        className="bg-slate-900/80"
+                        className="bg-white/85 dark:bg-slate-900/80"
                       />
                     </div>
                     {novoServicoRelatorioManual.fotos &&
@@ -2447,7 +2452,7 @@ function App() {
                   <Button
                     variant="outline"
                     onClick={adicionarServicoRelatorioManual}
-                    className="h-11 rounded-lg border-white/30 bg-transparent text-white hover:border-emerald-400/40 hover:bg-emerald-500/10"
+                    className="h-11 rounded-lg border-slate-300 dark:border-white/30 bg-transparent text-slate-900 dark:text-white hover:border-emerald-400/40 hover:bg-emerald-500/10"
                   >
                     Adicionar
                   </Button>
@@ -2457,10 +2462,10 @@ function App() {
                       {servicosRelatorioManuais.map((servico) => (
                         <div
                           key={servico.id}
-                          className="space-y-3 rounded-2xl border border-white/10 bg-slate-900/80 p-4"
+                          className="space-y-3 rounded-2xl border border-slate-200/70 dark:border-white/10 bg-white/85 dark:bg-slate-900/80 p-4"
                         >
                           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                            <span className="text-sm font-semibold text-white">{`${servico.nome} - ${servico.quantidade} ${servico.unidade}`}</span>
+                            <span className="text-sm font-semibold text-slate-900 dark:text-white">{`${servico.nome} - ${servico.quantidade} ${servico.unidade}`}</span>
                             <Button
                               variant="ghost"
                               size="icon"
@@ -2473,7 +2478,7 @@ function App() {
                             </Button>
                           </div>
                           {servico.descricao && (
-                            <p className="text-sm text-slate-300">
+                            <p className="text-sm text-slate-600 dark:text-slate-300">
                               {servico.descricao}
                             </p>
                           )}
@@ -2497,7 +2502,7 @@ function App() {
               </CardContent>
             </Card>
 
-            <Card className="bg-slate-900/70 border-white/10 shadow-xl shadow-emerald-500/10 backdrop-blur">
+            <Card className="bg-white/80 dark:bg-slate-900/70 border-slate-200/70 dark:border-white/10 shadow-xl shadow-emerald-500/10 backdrop-blur">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Camera className="h-5 w-5" />
@@ -2523,9 +2528,9 @@ function App() {
                           return (
                             <div
                               key={p}
-                              className="space-y-3 rounded-2xl border border-white/10 bg-slate-900/80 p-4"
+                              className="space-y-3 rounded-2xl border border-slate-200/70 dark:border-white/10 bg-white/85 dark:bg-slate-900/80 p-4"
                             >
-                              <Label className="flex items-center gap-3 text-sm text-slate-200">
+                              <Label className="flex items-center gap-3 text-sm text-slate-700 dark:text-slate-200">
                                 <Checkbox
                                   checked={!!selecionado}
                                   onCheckedChange={() =>
@@ -2539,7 +2544,7 @@ function App() {
                                 {p}
                               </Label>
                               {selecionado && (
-                                <div className="space-y-3 rounded-xl border border-white/10 bg-slate-950/60 p-4">
+                                <div className="space-y-3 rounded-xl border border-slate-200/70 dark:border-white/10 bg-white/80 dark:bg-slate-950/60 p-4">
                                   <Textarea
                                     value={selecionado.descricao}
                                     onChange={(e) =>
@@ -2567,7 +2572,7 @@ function App() {
                                           setProblemasEletricosSelecionados
                                         )
                                       }
-                                      className="bg-slate-900/80"
+                                      className="bg-white/85 dark:bg-slate-900/80"
                                     />
                                     <Input
                                       type="file"
@@ -2581,7 +2586,7 @@ function App() {
                                           setProblemasEletricosSelecionados
                                         )
                                       }
-                                      className="bg-slate-900/80"
+                                      className="bg-white/85 dark:bg-slate-900/80"
                                     />
                                   </div>
                                   {selecionado.fotos && selecionado.fotos.length > 0 && (
@@ -2617,9 +2622,9 @@ function App() {
                           return (
                             <div
                               key={p}
-                              className="space-y-3 rounded-2xl border border-white/10 bg-slate-900/80 p-4"
+                              className="space-y-3 rounded-2xl border border-slate-200/70 dark:border-white/10 bg-white/85 dark:bg-slate-900/80 p-4"
                             >
-                              <Label className="flex items-center gap-3 text-sm text-slate-200">
+                              <Label className="flex items-center gap-3 text-sm text-slate-700 dark:text-slate-200">
                                 <Checkbox
                                   checked={!!selecionado}
                                   onCheckedChange={() =>
@@ -2633,7 +2638,7 @@ function App() {
                                 {p}
                               </Label>
                               {selecionado && (
-                                <div className="space-y-3 rounded-xl border border-white/10 bg-slate-950/60 p-4">
+                                <div className="space-y-3 rounded-xl border border-slate-200/70 dark:border-white/10 bg-white/80 dark:bg-slate-950/60 p-4">
                                   <Textarea
                                     value={selecionado.descricao}
                                     onChange={(e) =>
@@ -2661,7 +2666,7 @@ function App() {
                                           setOutrosProblemasSelecionados
                                         )
                                       }
-                                      className="bg-slate-900/80"
+                                      className="bg-white/85 dark:bg-slate-900/80"
                                     />
                                     <Input
                                       type="file"
@@ -2675,7 +2680,7 @@ function App() {
                                           setOutrosProblemasSelecionados
                                         )
                                       }
-                                      className="bg-slate-900/80"
+                                      className="bg-white/85 dark:bg-slate-900/80"
                                     />
                                   </div>
                                   {selecionado.fotos && selecionado.fotos.length > 0 && (
@@ -2713,7 +2718,7 @@ function App() {
                   />
                 </div>
 
-                <div className="space-y-4 rounded-2xl border border-white/10 bg-slate-950/60 p-4">
+                <div className="space-y-4 rounded-2xl border border-slate-200/70 dark:border-white/10 bg-white/80 dark:bg-slate-950/60 p-4">
                   <div className="space-y-2">
                     <Label htmlFor="foto-relatorio">Capturar Foto</Label>
                     <Input
@@ -2723,7 +2728,7 @@ function App() {
                       capture="environment"
                       multiple
                       onChange={adicionarFotoRelatorio}
-                      className="bg-slate-900/80"
+                      className="bg-white/85 dark:bg-slate-900/80"
                     />
                   </div>
                   <div className="space-y-2">
@@ -2736,13 +2741,13 @@ function App() {
                       accept="image/*"
                       multiple
                       onChange={adicionarFotoRelatorio}
-                      className="bg-slate-900/80"
+                      className="bg-white/85 dark:bg-slate-900/80"
                     />
                   </div>
                   {fotosRelatorio.map((foto) => (
                     <div
                       key={foto.id}
-                      className="space-y-3 rounded-2xl border border-white/10 bg-slate-900/80 p-4"
+                      className="space-y-3 rounded-2xl border border-slate-200/70 dark:border-white/10 bg-white/85 dark:bg-slate-900/80 p-4"
                     >
                       <img
                         src={foto.src}
@@ -2798,7 +2803,7 @@ function App() {
                     }}
                     variant="outline"
                     size="sm"
-                    className="h-11 rounded-lg border-white/30 bg-transparent text-white hover:border-emerald-400/40 hover:bg-emerald-500/10"
+                    className="h-11 rounded-lg border-slate-300 dark:border-white/30 bg-transparent text-slate-900 dark:text-white hover:border-emerald-400/40 hover:bg-emerald-500/10"
                   >
                     Teste
                   </Button>
@@ -2811,15 +2816,15 @@ function App() {
               placeholder="Pesquisar por nome"
               value={buscaArquivo}
               onChange={(e) => setBuscaArquivo(e.target.value)}
-              className="bg-slate-900/80"
+              className="bg-white/85 dark:bg-slate-900/80"
             />
             {arquivosFiltrados.length === 0 ? (
-              <p className="text-sm text-slate-300">Nenhum documento salvo.</p>
+              <p className="text-sm text-slate-600 dark:text-slate-300">Nenhum documento salvo.</p>
             ) : (
               arquivosFiltrados.map(([nome, dados]) => (
                 <Card
                   key={nome}
-                  className="bg-slate-900/70 border-white/10 shadow-xl shadow-emerald-500/10 backdrop-blur"
+                  className="bg-white/80 dark:bg-slate-900/70 border-slate-200/70 dark:border-white/10 shadow-xl shadow-emerald-500/10 backdrop-blur"
                 >
                   <CardHeader>
                     <CardTitle>{nome}</CardTitle>
@@ -2852,7 +2857,7 @@ function App() {
                           ))}
                         </ul>
                       ) : (
-                        <p className="text-sm text-slate-400">
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
                           Nenhum orçamento salvo
                         </p>
                       )}
@@ -2884,7 +2889,7 @@ function App() {
                           ))}
                         </ul>
                       ) : (
-                        <p className="text-sm text-slate-400">
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
                           Nenhum relatório salvo
                         </p>
                       )}

@@ -45,6 +45,9 @@
   --radius: 0.625rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
+  --app-background: linear-gradient(180deg, #f1f5f9 0%, #e0f2f1 50%, #fde68a 100%);
+  --electric-particle: rgba(56, 189, 248, 0.55);
+  --electric-link: rgba(56, 189, 248, 0.2);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
@@ -79,6 +82,9 @@
 .dark {
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
+  --app-background: linear-gradient(180deg, #0c0f07 0%, #37653d 50%, #f28017 100%);
+  --electric-particle: rgba(14, 165, 233, 0.7);
+  --electric-link: rgba(14, 165, 233, 0.35);
   --card: oklch(0.205 0 0);
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.205 0 0);
@@ -115,7 +121,7 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply text-white;
-    background: linear-gradient(180deg, #0c0f07 0%, #37653d 50%, #f28017 100%);
+    @apply bg-background text-foreground transition-colors;
+    background: var(--app-background);
   }
 }
