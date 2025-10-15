@@ -1195,7 +1195,7 @@ function App() {
                     className="h-16 w-16 object-contain drop-shadow-[0_10px_25px_rgba(16,185,129,0.35)]"
                   />
                 </div>
-                <div className="space-y-2 text-center sm:text-left">
+                <div className="space-y-2 text-left">
                   <p className="text-xs font-semibold uppercase tracking-[0.3em] text-emerald-600 dark:text-emerald-300">
                     Raiz Elétrica
                   </p>
@@ -1207,12 +1207,12 @@ function App() {
                   </p>
                 </div>
               </div>
-              <div className="flex items-center justify-center gap-3">
+              <div className="flex w-full flex-col items-center gap-3 sm:w-auto sm:flex-row sm:justify-end">
                 <ThemeToggle />
                 <Button
                   variant="secondary"
                   size="lg"
-                  className="min-w-[200px] rounded-xl border border-slate-200/70 bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 transition-all duration-200 hover:-translate-y-0.5 hover:bg-emerald-500/90 dark:border-white/10 dark:bg-white/10 dark:text-white dark:hover:bg-white/20"
+                  className="w-full rounded-xl border border-slate-200/70 bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 transition-all duration-200 hover:-translate-y-0.5 hover:bg-emerald-500/90 sm:min-w-[200px] dark:border-white/10 dark:bg-white/10 dark:text-white dark:hover:bg-white/20"
                   onClick={() => setCurrentTab("orcamento")}
                 >
                   <Calculator className="h-5 w-5" />
@@ -1221,28 +1221,28 @@ function App() {
               </div>
             </div>
             <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              <div className="rounded-2xl border border-slate-200/70 dark:border-white/10 bg-white/80 dark:bg-slate-900/60 p-4 shadow-lg shadow-emerald-500/10 backdrop-blur">
+              <div className="flex flex-col justify-between rounded-2xl border border-slate-200/70 bg-white/80 p-4 shadow-lg shadow-emerald-500/10 backdrop-blur dark:border-white/10 dark:bg-slate-900/60">
                 <p className="text-sm text-slate-600 dark:text-slate-300">Serviços selecionados</p>
                 <p className="mt-2 text-2xl font-semibold text-slate-900 dark:text-white">
                   {totalServicosSelecionadosCount}
                 </p>
                 <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">inclui cadastros manuais</p>
               </div>
-              <div className="rounded-2xl border border-slate-200/70 dark:border-white/10 bg-white/80 dark:bg-slate-900/60 p-4 shadow-lg shadow-emerald-500/10 backdrop-blur">
+              <div className="flex flex-col justify-between rounded-2xl border border-slate-200/70 bg-white/80 p-4 shadow-lg shadow-emerald-500/10 backdrop-blur dark:border-white/10 dark:bg-slate-900/60">
                 <p className="text-sm text-slate-600 dark:text-slate-300">Estimativa com desconto</p>
                 <p className="mt-2 text-2xl font-semibold text-emerald-600 dark:text-emerald-300">
                   {currencyFormatter.format(totalEstimadoComDesconto || 0)}
                 </p>
                 <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">considerando materiais e mão de obra</p>
               </div>
-              <div className="rounded-2xl border border-slate-200/70 dark:border-white/10 bg-white/80 dark:bg-slate-900/60 p-4 shadow-lg shadow-emerald-500/10 backdrop-blur">
+              <div className="flex flex-col justify-between rounded-2xl border border-slate-200/70 bg-white/80 p-4 shadow-lg shadow-emerald-500/10 backdrop-blur dark:border-white/10 dark:bg-slate-900/60">
                 <p className="text-sm text-slate-600 dark:text-slate-300">Itens complementares</p>
                 <p className="mt-2 text-2xl font-semibold text-slate-900 dark:text-white">
                   {totalComplementosCount}
                 </p>
                 <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">materiais e despesas extras</p>
               </div>
-              <div className="rounded-2xl border border-slate-200/70 dark:border-white/10 bg-white/80 dark:bg-slate-900/60 p-4 shadow-lg shadow-emerald-500/10 backdrop-blur">
+              <div className="flex flex-col justify-between rounded-2xl border border-slate-200/70 bg-white/80 p-4 shadow-lg shadow-emerald-500/10 backdrop-blur dark:border-white/10 dark:bg-slate-900/60">
                 <p className="text-sm text-slate-600 dark:text-slate-300">Arquivos organizados</p>
                 <p className="mt-2 text-2xl font-semibold text-slate-900 dark:text-white">
                   {totalArquivosSalvos}
@@ -1260,9 +1260,9 @@ function App() {
             <Tabs
               value={currentTab}
               onValueChange={setCurrentTab}
-              className="grid gap-6 lg:grid-cols-[320px_1fr] xl:grid-cols-[360px_1fr]"
+              className="grid items-start gap-6 lg:grid-cols-[320px_1fr] xl:grid-cols-[360px_1fr]"
             >
-              <TabsList className="flex h-auto w-full flex-wrap items-stretch justify-start gap-2 rounded-3xl border border-slate-200/70 dark:border-white/10 bg-white/80 dark:bg-slate-900/60 p-2 shadow-xl shadow-emerald-500/10 backdrop-blur lg:sticky lg:top-28 lg:flex-col lg:h-fit lg:max-h-[calc(100vh-12rem)] lg:overflow-y-auto lg:p-4">
+              <TabsList className="flex h-auto w-full flex-wrap items-stretch justify-start gap-2 rounded-3xl border border-slate-200/70 dark:border-white/10 bg-white/80 dark:bg-slate-900/60 p-2 shadow-xl shadow-emerald-500/10 backdrop-blur lg:sticky lg:top-28 lg:flex-col lg:h-fit lg:max-h-[calc(100vh-12rem)] lg:overflow-y-auto lg:self-start lg:p-4">
                 <TabsTrigger
                   value="cliente"
                   className="group flex w-full items-center justify-between gap-3 rounded-2xl border border-transparent px-3 py-3 text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300 transition-all duration-150 hover:border-emerald-400/40 hover:bg-emerald-500/5 hover:text-emerald-600 dark:hover:text-white sm:text-sm"
@@ -1346,47 +1346,51 @@ function App() {
                       Informe os dados do cliente para o orçamento
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div>
-                      <Label htmlFor="nome">Nome *</Label>
-                      <Input
-                        id="nome"
-                        value={cliente.nome}
-                        onChange={(e) =>
-                          setCliente({ ...cliente, nome: e.target.value })
-                        }
-                        placeholder="Nome do cliente"
-                      />
+                  <CardContent className="space-y-6">
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div className="md:col-span-2">
+                        <Label htmlFor="nome">Nome *</Label>
+                        <Input
+                          id="nome"
+                          value={cliente.nome}
+                          onChange={(e) =>
+                            setCliente({ ...cliente, nome: e.target.value })
+                          }
+                          placeholder="Nome do cliente"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="contato">Contato</Label>
+                        <Input
+                          id="contato"
+                          value={cliente.contato}
+                          onChange={(e) =>
+                            setCliente({ ...cliente, contato: e.target.value })
+                          }
+                          placeholder="Telefone ou email"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="endereco">Endereço</Label>
+                        <Input
+                          id="endereco"
+                          value={cliente.endereco}
+                          onChange={(e) =>
+                            setCliente({ ...cliente, endereco: e.target.value })
+                          }
+                          placeholder="Endereço do cliente"
+                        />
+                      </div>
                     </div>
-                    <div>
-                      <Label htmlFor="contato">Contato</Label>
-                      <Input
-                        id="contato"
-                        value={cliente.contato}
-                        onChange={(e) =>
-                          setCliente({ ...cliente, contato: e.target.value })
-                        }
-                        placeholder="Telefone ou email"
-                      />
+                    <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+                      <Button
+                        onClick={() => setCurrentTab("servicos")}
+                        disabled={!cliente.nome}
+                        className="w-full rounded-lg bg-emerald-500 text-white shadow-lg shadow-emerald-500/30 transition hover:-translate-y-0.5 hover:bg-emerald-500/90 sm:w-auto"
+                      >
+                        Próximo: Selecionar Serviços
+                      </Button>
                     </div>
-                    <div>
-                      <Label htmlFor="endereco">Endereço</Label>
-                      <Input
-                        id="endereco"
-                        value={cliente.endereco}
-                        onChange={(e) =>
-                          setCliente({ ...cliente, endereco: e.target.value })
-                        }
-                        placeholder="Endereço do cliente"
-                      />
-                    </div>
-                    <Button
-                      onClick={() => setCurrentTab("servicos")}
-                      disabled={!cliente.nome}
-                      className="w-full rounded-lg bg-emerald-500 text-white shadow-lg shadow-emerald-500/30 transition hover:-translate-y-0.5 hover:bg-emerald-500/90"
-                    >
-                      Próximo: Selecionar Serviços
-                    </Button>
                   </CardContent>
                 </Card>
 
