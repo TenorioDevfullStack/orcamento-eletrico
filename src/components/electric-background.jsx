@@ -1,7 +1,9 @@
 import { useEffect, useRef } from "react";
+import { useTheme } from "next-themes";
 
 function ElectricBackground() {
   const canvasRef = useRef(null);
+  const { resolvedTheme } = useTheme();
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -35,10 +37,32 @@ function ElectricBackground() {
       }
     };
 
+    const getColors = () => {
+      if (typeof window === "undefined") {
+        return {
+          particle: "rgba(56, 189, 248, 0.55)",
+          link: "rgba(56, 189, 248, 0.2)",
+        };
+      }
+
+      const styles = getComputedStyle(document.documentElement);
+
+      return {
+        particle:
+          styles.getPropertyValue("--electric-particle").trim() ||
+          "rgba(56, 189, 248, 0.55)",
+        link:
+          styles.getPropertyValue("--electric-link").trim() ||
+          "rgba(56, 189, 248, 0.2)",
+      };
+    };
+
     const draw = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      ctx.fillStyle = "rgba(0, 150, 255, 0.7)";
+      const colors = getColors();
+
+      ctx.fillStyle = colors.particle;
       particles.forEach((particle) => {
         const updatedParticle = particle;
         updatedParticle.x += updatedParticle.dx;
@@ -56,7 +80,7 @@ function ElectricBackground() {
         ctx.fill();
       });
 
-      ctx.strokeStyle = "rgba(0, 200, 255, 0.3)";
+      ctx.strokeStyle = colors.link;
       for (let i = 0; i < particles.length; i += 1) {
         for (let j = i + 1; j < particles.length; j += 1) {
           const p1 = particles[i];
@@ -89,7 +113,7 @@ function ElectricBackground() {
       cancelAnimationFrame(animationFrameId);
       window.removeEventListener("resize", handleResize);
     };
-  }, []);
+  }, [resolvedTheme]);
 
   return (
     <canvas
